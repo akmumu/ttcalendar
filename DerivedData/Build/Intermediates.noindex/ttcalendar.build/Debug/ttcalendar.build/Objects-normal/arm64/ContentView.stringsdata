@@ -1,0 +1,40 @@
+{
+  "source": "/Users/didi/workspace/apple/ttcalendar/ttcalendar/ContentView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "抬头日历",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 49
+        }
+      },
+      {
+        "comment": "",
+        "key": "桌面小组件日历",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 52
+        }
+      },
+      {
+        "comment": "",
+        "key": "在桌面空白处右键，选择“编辑小组件”，搜索“抬头日历”，然后添加大型或超大型小组件。",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 63
+        }
+      },
+      {
+        "comment": "",
+        "key": "大型显示单月，超大型显示本月和下月。小组件数据会读取本机日历中的节假日信息，并补充农历、节气和常见节日。",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 68
+        }
+      }
+    ]
+  },
+  "version": 1
+}

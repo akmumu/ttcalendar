@@ -1,0 +1,32 @@
+{
+  "source": "/Users/didi/workspace/apple/ttcalendar/CalendarWidget/CalendarWidget.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 170
+        }
+      },
+      {
+        "comment": "",
+        "key": "抬头日历",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 250
+        }
+      },
+      {
+        "comment": "",
+        "key": "显示农历、节日和节气。",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 251
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,69 @@
+{
+  "" : {
+    "diagnostics" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetExtension-primary.dia",
+    "emit-module-dependencies" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetExtension-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetExtension-primary-emit-module.dia",
+    "pch" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetExtension-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetExtension-primary.swiftdeps"
+  },
+  "/Users/didi/workspace/apple/ttcalendar/CalendarWidget/CalendarWidget.swift" : {
+    "const-values" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidget.swiftconstvalues",
+    "dependencies" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidget.d",
+    "diagnostics" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidget.dia",
+    "index-unit-output-path" : "/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidget.o",
+    "llvm-bc" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidget.bc",
+    "object" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidget.o",
+    "swift-dependencies" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidget.swiftdeps",
+    "swiftmodule" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidget~partial.swiftmodule"
+  },
+  "/Users/didi/workspace/apple/ttcalendar/CalendarWidget/CalendarWidgetBundle.swift" : {
+    "const-values" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetBundle.swiftconstvalues",
+    "dependencies" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetBundle.d",
+    "diagnostics" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetBundle.dia",
+    "index-unit-output-path" : "/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetBundle.o",
+    "llvm-bc" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetBundle.bc",
+    "object" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetBundle.o",
+    "swift-dependencies" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetBundle.swiftdeps",
+    "swiftmodule" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetBundle~partial.swiftmodule"
+  },
+  "/Users/didi/workspace/apple/ttcalendar/CalendarWidget/CalendarWidgetNavigationIntent.swift" : {
+    "const-values" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetNavigationIntent.swiftconstvalues",
+    "dependencies" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetNavigationIntent.d",
+    "diagnostics" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetNavigationIntent.dia",
+    "index-unit-output-path" : "/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetNavigationIntent.o",
+    "llvm-bc" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetNavigationIntent.bc",
+    "object" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetNavigationIntent.o",
+    "swift-dependencies" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetNavigationIntent.swiftdeps",
+    "swiftmodule" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarWidgetNavigationIntent~partial.swiftmodule"
+  },
+  "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/GeneratedAssetSymbols~partial.swiftmodule"
+  },
+  "/Users/didi/workspace/apple/ttcalendar/Shared/CalendarContent.swift" : {
+    "const-values" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarContent.swiftconstvalues",
+    "dependencies" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarContent.d",
+    "diagnostics" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarContent.dia",
+    "index-unit-output-path" : "/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarContent.o",
+    "llvm-bc" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarContent.bc",
+    "object" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarContent.o",
+    "swift-dependencies" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarContent.swiftdeps",
+    "swiftmodule" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/CalendarContent~partial.swiftmodule"
+  },
+  "/Users/didi/workspace/apple/ttcalendar/Shared/WidgetMonthNavigation.swift" : {
+    "const-values" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/WidgetMonthNavigation.swiftconstvalues",
+    "dependencies" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/WidgetMonthNavigation.d",
+    "diagnostics" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/WidgetMonthNavigation.dia",
+    "index-unit-output-path" : "/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/WidgetMonthNavigation.o",
+    "llvm-bc" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/WidgetMonthNavigation.bc",
+    "object" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/WidgetMonthNavigation.o",
+    "swift-dependencies" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/WidgetMonthNavigation.swiftdeps",
+    "swiftmodule" : "/Users/didi/workspace/apple/ttcalendar/DerivedData/Build/Intermediates.noindex/ttcalendar.build/Debug/CalendarWidgetExtension.build/Objects-normal/arm64/WidgetMonthNavigation~partial.swiftmodule"
+  }
+}

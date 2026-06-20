@@ -1,0 +1,14 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>抬头日历</title>
+        <item>
+            <title>1.13</title>
+            <pubDate>Thu, 18 Jun 2026 17:17:50 +0800</pubDate>
+            <sparkle:version>13</sparkle:version>
+            <sparkle:shortVersionString>1.13</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.5</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/akmumu/ttcalendar/releases/download/%E6%8A%AC%E5%A4%B4%E6%97%A5%E5%8E%86-Mac%E7%89%88.dmg" length="2036067" type="application/octet-stream" sparkle:edSignature="Diqg6OSxD1kQ3FkmYLixQFHp8JVh/+pvNZP5qdxEPinFJ6LqTb2sy2glSCo1NBwkRj4WGeRRKjr1dq6llcUuAw=="/>
+        </item>
+    </channel>
+</rss>

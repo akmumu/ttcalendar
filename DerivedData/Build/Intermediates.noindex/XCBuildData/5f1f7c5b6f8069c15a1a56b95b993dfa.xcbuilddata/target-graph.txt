@@ -1,0 +1,4 @@
+Target dependency graph (2 targets)
+Target 'ttcalendar' in project 'ttcalendar'
+➜ Explicit dependency on target 'CalendarWidgetExtension' in project 'ttcalendar'
+Target 'CalendarWidgetExtension' in project 'ttcalendar' (no dependencies)
