@@ -10,6 +10,11 @@
 
 [下载最新版 macOS 安装包](https://github.com/akmumu/ttcalendar/releases/latest/download/ttcalendar.dmg)
 
+## 安装和使用
+
+打开安装包，拖动应用程序到 application，启动台运行一次程序
+然后在桌面空白处右键选择“编辑小组件”，搜索“抬头日历”，添加大型或超大型小组件
+
 ## 功能
 
 - 大型桌面小组件：展示单月日历、农历、节假日、节气、周末和调休标记。
@@ -110,5 +115,5 @@ swift Scripts/generate_app_icon.swift
 
 当前工程版本：
 
-- Marketing Version：`1.13`
-- Build：`13`
+- Marketing Version：`1.14`
+- Build：`14`

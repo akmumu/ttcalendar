@@ -405,7 +405,7 @@
 				CODE_SIGN_ENTITLEMENTS = ttcalendar/ttcalendar.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = 5EDXFWFU52;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -423,7 +423,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.13;
+				MARKETING_VERSION = 1.14;
 				PRODUCT_BUNDLE_IDENTIFIER = akmumu.ttcalendar;
 				PRODUCT_NAME = "抬头日历";
 				REGISTER_APP_GROUPS = YES;
@@ -444,7 +444,7 @@
 				CODE_SIGN_ENTITLEMENTS = ttcalendar/ttcalendar.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = 5EDXFWFU52;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -462,7 +462,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.13;
+				MARKETING_VERSION = 1.14;
 				PRODUCT_BUNDLE_IDENTIFIER = akmumu.ttcalendar;
 				PRODUCT_NAME = "抬头日历";
 				REGISTER_APP_GROUPS = YES;
@@ -482,7 +482,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = CalendarWidget/CalendarWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = 5EDXFWFU52;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -497,7 +497,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.5;
-				MARKETING_VERSION = 1.13;
+				MARKETING_VERSION = 1.14;
 				PRODUCT_BUNDLE_IDENTIFIER = akmumu.ttcalendar.CalendarWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -517,7 +517,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = CalendarWidget/CalendarWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = 5EDXFWFU52;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -532,7 +532,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.5;
-				MARKETING_VERSION = 1.13;
+				MARKETING_VERSION = 1.14;
 				PRODUCT_BUNDLE_IDENTIFIER = akmumu.ttcalendar.CalendarWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
