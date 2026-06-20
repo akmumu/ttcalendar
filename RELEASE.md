@@ -10,13 +10,21 @@
 Scripts/generate_sparkle_keys.sh
 ```
 
-脚本会把私钥保存在 macOS Keychain 的 `akmumu.ttcalendar` account 下，并更新 `SUPublicEDKey`。私钥不要提交到 Git，也不要放进 release 目录。
+脚本会把私钥保存在 macOS Keychain 下，并更新 `SUPublicEDKey`。私钥不要提交到 Git，也不要放进 release 目录。
+
+已经发布过的 App 不能随意更换 `SUPublicEDKey`。1.13 使用的是默认 Keychain account `ed25519` 对应的公钥，后续版本必须继续用这把钥匙签名：
+
+```text
+prXVolYqRBZ2dxSMY3Ga/pF+AdwrlcCc/XetU/60R2o=
+```
 
 如果要换 account：
 
 ```sh
 SPARKLE_KEY_ACCOUNT=akmumu.ttcalendar Scripts/generate_sparkle_keys.sh
 ```
+
+只有在还没有任何外部版本使用 Sparkle 更新时，才可以换 account 或换公钥。
 
 ## 1. 开发测试
 
@@ -105,7 +113,7 @@ Scripts/update_appcast.sh
 脚本默认会：
 
 - 从 `/Users/didi/workspace/apple/ttcalendar.dmg` 读取 DMG
-- 用 Keychain 里的 `akmumu.ttcalendar` 私钥签名
+- 用 Keychain 里的 `ed25519` 私钥签名
 - 生成或更新 `docs/appcast.xml`
 - 默认下载地址前缀为 `https://github.com/akmumu/ttcalendar/releases/download/版本号/`
 
