@@ -93,6 +93,7 @@ struct TodayInfo: Hashable {
     let dateText: String
     let weekdayText: String
     let lunarText: String
+    let displayText: String
 }
 
 enum CalendarContent {
@@ -172,11 +173,20 @@ enum CalendarContent {
         let calendar = contentCalendar()
         let startDate = calendar.startOfDay(for: date)
         let lunar = LunarFormatter.text(for: startDate, calendar: calendar)
+        let markers = DayMarker.markers(for: startDate, lunar: lunar, calendar: calendar)
+        let holiday = HolidaySchedule.annotation(for: startDate, calendar: calendar)
+        let holidayDisplayName = visibleHolidayDisplayName(
+            holiday?.displayName,
+            badgeText: holiday?.badgeText,
+            markers: markers
+        )
+        let displayText = uniqueMarkerTexts([holidayDisplayName] + markers.map(\.name)).first ?? lunar.fullDisplayText
 
         return TodayInfo(
             dateText: monthDayText(for: startDate, calendar: calendar),
             weekdayText: weekdayText(for: startDate, calendar: calendar),
-            lunarText: lunar.fullDisplayText
+            lunarText: lunar.fullDisplayText,
+            displayText: displayText
         )
     }
 

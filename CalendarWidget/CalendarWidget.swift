@@ -449,7 +449,7 @@ struct ExtraLargeInfoBar: View {
             ExtraLargeInfoItem(
                 systemName: "calendar",
                 title: "今天",
-                value: todayInfo.lunarText,
+                value: todayInfo.displayText,
                 detail: "\(todayInfo.dateText) \(todayInfo.weekdayText)",
                 accent: .accentColor
             )

@@ -111,9 +111,3 @@ swift Scripts/generate_app_icon.swift
 
 生成结果会输出到 `GeneratedIcon.appiconset/`，可按需同步到 app 或 widget 的 `Assets.xcassets/AppIcon.appiconset/`。
 
-## 版本
-
-当前工程版本：
-
-- Marketing Version：`1.14`
-- Build：`14`
