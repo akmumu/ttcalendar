@@ -4,6 +4,12 @@
 
 应用本体负责权限授权、节假日日历同步、更新检查和使用说明；WidgetKit 小组件负责日历展示、月份切换和近期节日提醒。
 
+![抬头日历小组件截图](ttcalendar/Assets.xcassets/WidgetPreview.imageset/widget-preview.png)
+
+## 下载
+
+[下载最新版 macOS 安装包](https://github.com/akmumu/ttcalendar/releases/latest/download/ttcalendar.dmg)
+
 ## 功能
 
 - 大型桌面小组件：展示单月日历、农历、节假日、节气、周末和调休标记。

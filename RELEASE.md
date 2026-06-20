@@ -65,7 +65,7 @@ Scripts/package_dmg.sh
 默认输出：
 
 ```text
-/Users/didi/workspace/apple/抬头日历-Mac版.dmg
+/Users/didi/workspace/apple/ttcalendar.dmg
 ```
 
 如果要覆盖已有 DMG：
@@ -79,13 +79,13 @@ OVERWRITE_DMG=1 Scripts/package_dmg.sh
 在 GitHub 仓库 `akmumu/ttcalendar` 创建 tag，例如：
 
 ```text
-v1.14
+1.14
 ```
 
 上传 DMG：
 
 ```text
-抬头日历-Mac版.dmg
+ttcalendar.dmg
 ```
 
 ## 6. 生成 Sparkle appcast
@@ -104,21 +104,21 @@ Scripts/update_appcast.sh
 
 脚本默认会：
 
-- 从 `/Users/didi/workspace/apple/抬头日历-Mac版.dmg` 读取 DMG
+- 从 `/Users/didi/workspace/apple/ttcalendar.dmg` 读取 DMG
 - 用 Keychain 里的 `akmumu.ttcalendar` 私钥签名
 - 生成或更新 `docs/appcast.xml`
-- 默认下载地址前缀为 `https://github.com/akmumu/ttcalendar/releases/download/v版本号`
+- 默认下载地址前缀为 `https://github.com/akmumu/ttcalendar/releases/download/版本号/`
 
 如果 tag 或 DMG 地址不同：
 
 ```sh
-RELEASE_TAG=v1.14 Scripts/update_appcast.sh
+RELEASE_TAG=1.14 Scripts/update_appcast.sh
 ```
 
 也可以直接覆盖完整下载前缀，注意结尾 `/` 可省略，脚本会自动补上：
 
 ```sh
-DOWNLOAD_URL_PREFIX=https://github.com/akmumu/ttcalendar/releases/download/v1.14 Scripts/update_appcast.sh
+DOWNLOAD_URL_PREFIX=https://github.com/akmumu/ttcalendar/releases/download/1.14 Scripts/update_appcast.sh
 ```
 
 ## 7. 发布 GitHub Pages

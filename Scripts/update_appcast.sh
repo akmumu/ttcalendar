@@ -5,7 +5,7 @@ SCRIPT_DIR="${0:A:h}"
 PROJECT_ROOT="${SCRIPT_DIR:h}"
 WORKSPACE_ROOT="${PROJECT_ROOT:h}"
 APPCAST_DIR="${APPCAST_DIR:-${PROJECT_ROOT}/docs}"
-DMG_PATH="${DMG_PATH:-${WORKSPACE_ROOT}/抬头日历-Mac版.dmg}"
+DMG_PATH="${DMG_PATH:-${WORKSPACE_ROOT}/ttcalendar.dmg}"
 KEY_ACCOUNT="${SPARKLE_KEY_ACCOUNT:-akmumu.ttcalendar}"
 MAXIMUM_VERSIONS="${MAXIMUM_VERSIONS:-3}"
 
@@ -23,7 +23,7 @@ if [[ -z "${marketing_version}" ]]; then
   exit 65
 fi
 
-RELEASE_TAG="${RELEASE_TAG:-v${marketing_version}}"
+RELEASE_TAG="${RELEASE_TAG:-${marketing_version}}"
 DOWNLOAD_URL_PREFIX="${DOWNLOAD_URL_PREFIX:-https://github.com/akmumu/ttcalendar/releases/download/${RELEASE_TAG}/}"
 if [[ "${DOWNLOAD_URL_PREFIX}" != */ ]]; then
   DOWNLOAD_URL_PREFIX="${DOWNLOAD_URL_PREFIX}/"
