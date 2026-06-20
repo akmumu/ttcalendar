@@ -7,7 +7,8 @@ WORKSPACE_ROOT="${PROJECT_ROOT:h}"
 APPCAST_DIR="${APPCAST_DIR:-${PROJECT_ROOT}/docs}"
 DMG_PATH="${DMG_PATH:-${WORKSPACE_ROOT}/ttcalendar.dmg}"
 KEY_ACCOUNT="${SPARKLE_KEY_ACCOUNT:-akmumu.ttcalendar}"
-MAXIMUM_VERSIONS="${MAXIMUM_VERSIONS:-3}"
+MAXIMUM_VERSIONS="${MAXIMUM_VERSIONS:-1}"
+MAXIMUM_DELTAS="${MAXIMUM_DELTAS:-0}"
 
 GENERATE_APPCAST="$("${SCRIPT_DIR}/find_sparkle_tool.sh" generate_appcast)"
 
@@ -48,6 +49,7 @@ echo "Keychain account: ${KEY_ACCOUNT}"
   --account "${KEY_ACCOUNT}" \
   --download-url-prefix "${DOWNLOAD_URL_PREFIX}" \
   --maximum-versions "${MAXIMUM_VERSIONS}" \
+  --maximum-deltas "${MAXIMUM_DELTAS}" \
   "${APPCAST_DIR}"
 
 echo

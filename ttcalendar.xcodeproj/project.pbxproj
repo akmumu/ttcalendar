@@ -216,6 +216,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				zh_CN,
 				Base,
 			);
 			mainGroup = 0AE81C0A2FE0024F005229AF;

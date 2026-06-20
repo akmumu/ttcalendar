@@ -233,12 +233,19 @@ struct ContentView: View {
     }
 
     private var footer: some View {
-        HStack {
+        HStack(spacing: 12) {
             Spacer()
 
             Text("create by akmumu")
                 .font(.caption.weight(.medium))
                 .foregroundStyle(.tertiary)
+
+            Link(destination: URL(string: "https://github.com/akmumu/ttcalendar")!) {
+                Label("GitHub", systemImage: "link")
+                    .font(.caption.weight(.medium))
+            }
+            .foregroundStyle(.secondary)
+            .help("打开 GitHub 仓库")
         }
         .padding(.top, 4)
     }
