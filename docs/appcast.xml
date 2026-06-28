@@ -9,7 +9,7 @@
             <sparkle:shortVersionString>1.16</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>26.5</sparkle:minimumSystemVersion>
             <sparkle:releaseNotesLink>https://akmumu.github.io/ttcalendar/ttcalendar.html</sparkle:releaseNotesLink>
-            <enclosure url="https://github.com/akmumu/ttcalendar/releases/download/1.16/ttcalendar.dmg" length="2110415" type="application/octet-stream" sparkle:edSignature="udQFFoTMOOJBP6MBJfJx06a+LfP/J5da7jrz/rfyH4Cm4zrOtMLGPqTusveQ2JOxqW3rUvEIYohlnnzL7GG7AA=="/>
+            <enclosure url="https://github.com/akmumu/ttcalendar/releases/download/1.16/ttcalendar.dmg" length="2177702" type="application/octet-stream" sparkle:edSignature="Kt0PImwRU0nfvafps6rop8WZ4IS1LappjPJezOlcntw8i0cJ8pQSe92X3e728pEwbrrGJxsdI1BCHh5KZbVCAg=="/>
         </item>
     </channel>
 </rss>
