@@ -1,0 +1,32 @@
+{
+  "source": "/Users/didi/workspace/apple/ttcalendar/CalendarWidget/CalendarWidgetNavigationIntent.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "上个月",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 5
+        }
+      },
+      {
+        "comment": "",
+        "key": "下个月",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 17
+        }
+      },
+      {
+        "comment": "",
+        "key": "回到本月",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 29
+        }
+      }
+    ]
+  },
+  "version": 1
+}

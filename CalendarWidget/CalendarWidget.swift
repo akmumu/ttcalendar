@@ -11,11 +11,11 @@ import AppIntents
 
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        makeEntry(date: Date())
+        makeEntry(date: Date(), family: context.family)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> Void) {
-        completion(makeEntry(date: Date()))
+        completion(makeEntry(date: Date(), family: context.family))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<SimpleEntry>) -> Void) {
@@ -23,27 +23,57 @@ struct Provider: TimelineProvider {
         var calendar = Calendar.autoupdatingCurrent
         calendar.timeZone = .autoupdatingCurrent
 
-        let nextRefresh = calendar.nextDate(
-            after: now,
-            matching: DateComponents(hour: 0, minute: 2),
-            matchingPolicy: .nextTime
-        ) ?? calendar.date(byAdding: .hour, value: 1, to: now) ?? now
+        if WidgetMonthNavigation.hasRecentInteraction {
+            let entry = makeEntry(date: now, family: context.family)
+            let nextFullRefresh = calendar.date(byAdding: .second, value: 15, to: now) ?? now
+            completion(Timeline(entries: [entry], policy: .after(nextFullRefresh)))
+            return
+        }
 
-        let entry = makeEntry(date: now)
-        completion(Timeline(entries: [entry], policy: .after(nextRefresh)))
+        let entryCount = 8
+        let entries = (0..<entryCount).compactMap { offset -> SimpleEntry? in
+            if offset == 0 {
+                return makeEntry(date: now, family: context.family)
+            }
+
+            guard let refreshDate = dailyRefreshDate(daysFromNow: offset, now: now, calendar: calendar) else {
+                return nil
+            }
+
+            return makeEntry(date: refreshDate, family: context.family)
+        }
+
+        completion(Timeline(entries: entries, policy: .atEnd))
     }
 
-    private func makeEntry(date: Date) -> SimpleEntry {
-        SimpleEntry(
+    private func makeEntry(date: Date, family: WidgetFamily) -> SimpleEntry {
+        let monthAnchor = WidgetMonthNavigation.currentMonthAnchor(for: date)
+        let month = CalendarContent.month(containing: monthAnchor, today: date)
+        let nextMonth = family == .systemExtraLarge
+            ? CalendarContent.month(containing: CalendarContent.addingMonths(1, to: monthAnchor), today: date)
+            : month
+        let highlights = CalendarContent.upcomingHighlights(after: date, includesFestivalAndSolarTerm: family == .systemExtraLarge)
+
+        return SimpleEntry(
             date: date,
-            month: CalendarContent.month(containing: WidgetMonthNavigation.currentMonthAnchor),
-            nextMonth: CalendarContent.month(containing: CalendarContent.addingMonths(1, to: WidgetMonthNavigation.currentMonthAnchor)),
+            month: month,
+            nextMonth: nextMonth,
             todayInfo: CalendarContent.todayInfo(for: date),
-            nextSpecialDay: CalendarContent.nextSpecialDay(after: date),
-            nextFestival: CalendarContent.nextFestival(after: date),
-            nextSolarTerm: CalendarContent.nextSolarTerm(after: date),
-            monthOffset: WidgetMonthNavigation.currentOffset
+            nextSpecialDay: highlights.nextSpecialDay,
+            nextFestival: highlights.nextFestival,
+            nextSolarTerm: highlights.nextSolarTerm,
+            monthOffset: WidgetMonthNavigation.currentOffset,
+            refreshToken: CalendarEventCache.refreshToken
         )
+    }
+
+    private func dailyRefreshDate(daysFromNow offset: Int, now: Date, calendar: Calendar) -> Date? {
+        guard let targetDay = calendar.date(byAdding: .day, value: offset, to: now) else {
+            return nil
+        }
+
+        let startOfTargetDay = calendar.startOfDay(for: targetDay)
+        return calendar.date(bySettingHour: 0, minute: 2, second: 0, of: startOfTargetDay) ?? startOfTargetDay
     }
 }
 
@@ -56,6 +86,7 @@ struct SimpleEntry: TimelineEntry {
     let nextFestival: NextSpecialDay?
     let nextSolarTerm: NextSpecialDay?
     let monthOffset: Int
+    let refreshToken: Double
 }
 
 struct CalendarWidgetEntryView: View {
@@ -73,6 +104,7 @@ struct CalendarWidgetEntryView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 12)
+        .id(entry.refreshToken)
     }
 
     private var largeBody: some View {
@@ -103,6 +135,7 @@ struct CalendarWidgetEntryView: View {
         let monthDays = entry.month.daysWithoutCompactTrailingOutsideWeek
         let nextMonthDays = entry.nextMonth.daysWithoutCompactTrailingOutsideWeek
         let showsBottomRow = monthDays.count <= 35 && nextMonthDays.count <= 35
+        let hasCustomSpecialDay = entry.nextSpecialDay != nil && isCustomSpecialDay(entry.nextSpecialDay!)
 
         return VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .center, spacing: 14) {
@@ -125,12 +158,20 @@ struct CalendarWidgetEntryView: View {
                 ExtraLargeBottomRow(
                     leftDays: entry.month.compactTrailingCurrentMonthDays,
                     rightDays: entry.nextMonth.compactTrailingCurrentMonthDays,
-                    todayInfo: entry.todayInfo,
+                    todayInfo: hasCustomSpecialDay ? nil : entry.todayInfo,
+                    customSpecialDay: hasCustomSpecialDay ? entry.nextSpecialDay : nil,
                     festival: entry.nextFestival,
                     solarTerm: entry.nextSolarTerm
                 )
             }
         }
+    }
+
+    private func isCustomSpecialDay(_ specialDay: NextSpecialDay) -> Bool {
+        var calendar = Calendar.autoupdatingCurrent
+        calendar.timeZone = .autoupdatingCurrent
+        let components = calendar.dateComponents([.month, .day], from: specialDay.date)
+        return CustomSpecialDateStore.customDate(for: components.month ?? 0, day: components.day ?? 0) != nil
     }
 
     private func header(title: String, compact: Bool = false) -> some View {
@@ -172,8 +213,11 @@ struct CalendarWidgetEntryView: View {
                             Circle().stroke(Color.primary.opacity(0.12), lineWidth: 1)
                         )
                 )
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .frame(width: 28, height: 28)
+        .contentShape(Rectangle())
         .help(help)
     }
 
@@ -381,7 +425,8 @@ struct EmbeddedSpecialDayBar: View {
 struct ExtraLargeBottomRow: View {
     let leftDays: [CalendarDay]
     let rightDays: [CalendarDay]
-    let todayInfo: TodayInfo
+    let todayInfo: TodayInfo?
+    let customSpecialDay: NextSpecialDay?
     let festival: NextSpecialDay?
     let solarTerm: NextSpecialDay?
 
@@ -399,6 +444,7 @@ struct ExtraLargeBottomRow: View {
             ZStack {
                 ExtraLargeInfoBar(
                     todayInfo: todayInfo,
+                    customSpecialDay: customSpecialDay,
                     festival: festival,
                     solarTerm: solarTerm
                 )
@@ -440,19 +486,30 @@ struct ExtraLargeBottomRow: View {
 }
 
 struct ExtraLargeInfoBar: View {
-    let todayInfo: TodayInfo
+    let todayInfo: TodayInfo?
+    let customSpecialDay: NextSpecialDay?
     let festival: NextSpecialDay?
     let solarTerm: NextSpecialDay?
 
     var body: some View {
         HStack(spacing: 8) {
-            ExtraLargeInfoItem(
-                systemName: "calendar",
-                title: "今天",
-                value: todayInfo.displayText,
-                detail: "\(todayInfo.dateText) \(todayInfo.weekdayText)",
-                accent: .accentColor
-            )
+            if let todayInfo {
+                ExtraLargeInfoItem(
+                    systemName: "calendar",
+                    title: "今天",
+                    value: todayInfo.displayText,
+                    detail: "\(todayInfo.dateText) \(todayInfo.weekdayText)",
+                    accent: .accentColor
+                )
+            } else if let customSpecialDay {
+                ExtraLargeInfoItem(
+                    systemName: "star.fill",
+                    title: customSpecialDay.name,
+                    value: "还有 \(customSpecialDay.daysRemaining) 天",
+                    detail: customSpecialDay.dateText,
+                    accent: .purple
+                )
+            }
 
             if let festival {
                 ExtraLargeInfoItem(
@@ -531,110 +588,6 @@ struct ExtraLargeInfoItem: View {
     }
 }
 
-struct WidgetDayCell: View {
-    let day: CalendarDay
-    var compact = false
-
-    var body: some View {
-        VStack(spacing: compact ? 1 : 2) {
-            ZStack(alignment: .topTrailing) {
-                Text("\(day.day)")
-                    .font(.system(size: compact ? 10 : 13, weight: day.isToday ? .bold : .semibold))
-                    .foregroundStyle(dayForeground)
-                    .frame(width: compact ? 16 : 22, height: compact ? 16 : 22)
-                    .background {
-                        if day.isToday {
-                            Circle()
-                                .fill(Color.accentColor)
-                        }
-                    }
-
-                if let badge = day.holidayBadgeText {
-                    Text(badge)
-                        .font(.system(size: compact ? 6 : 8, weight: .bold))
-                        .foregroundStyle(badgeForeground)
-                        .offset(x: compact ? 5 : 7, y: compact ? -1 : -2)
-                }
-            }
-
-            Text(day.subtitle)
-                .font(.system(size: compact ? 6.5 : 8.5, weight: .medium))
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .foregroundStyle(subtitleForeground)
-                .frame(maxWidth: .infinity)
-        }
-        .padding(.vertical, compact ? 1 : 3)
-        .frame(maxWidth: .infinity)
-        .frame(height: compact ? 24 : 40)
-        .background(cellBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-    }
-
-    private var dayForeground: Color {
-        if day.isToday {
-            return .white
-        }
-
-        if !day.isCurrentMonth {
-            return .secondary
-        }
-
-        if day.isWorkdayAdjustment {
-            return workdayAdjustmentColor
-        }
-
-        if day.isRestDay || day.hasSpecialMarker {
-            return .red
-        }
-
-        if day.isWeekend && !day.isWorkdayAdjustment {
-            return .secondary
-        }
-
-        return .primary
-    }
-
-    private var subtitleForeground: Color {
-        if !day.isCurrentMonth {
-            return .secondary.opacity(0.55)
-        }
-
-        if day.isWorkdayAdjustment {
-            return workdayAdjustmentColor
-        }
-
-        if day.isRestDay || day.hasSpecialMarker {
-            return .red
-        }
-
-        return .secondary
-    }
-
-    private var badgeForeground: Color {
-        day.isWorkdayAdjustment ? workdayAdjustmentColor : .green
-    }
-
-    private var workdayAdjustmentColor: Color {
-        .orange
-    }
-
-    private var cellBackground: some ShapeStyle {
-        if day.isToday {
-            return Color.accentColor.opacity(0.12)
-        }
-
-        if day.isWorkdayAdjustment {
-            return Color.orange.opacity(0.14)
-        }
-
-        if day.isRestDay {
-            return Color.pink.opacity(0.14)
-        }
-
-        return Color.primary.opacity(day.isCurrentMonth ? 0.035 : 0.012)
-    }
-}
 
 struct CalendarWidget: Widget {
     let kind: String = CalendarWidgetIdentity.kind

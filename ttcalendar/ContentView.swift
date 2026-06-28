@@ -18,11 +18,11 @@ struct ContentView: View {
     @State private var holidayCalendarMessage: String?
 
     private let updates = [
-        "支持大型和超大型桌面小组件，快速查看本月与下月日历。",
-        "显示农历、节日、节气、周末和调休信息，重要日期一眼可见。",
-        "可读取本机 Apple 日历中的节假日数据，让休班安排更准确。",
-        "支持在小组件上切换月份，并可一键回到当前月份。",
-        "大型小组件提供近期节日倒计时，超大型小组件补充今日、节日和节气提醒。"
+        "修复 Mac 睡眠或关机跨天后，小组件可能继续显示旧日期的问题。",
+        "小组件会提前生成未来多天时间线，今天高亮和今日信息会按对应日期刷新。",
+        "优化小组件月份切换和回到本月按钮，改为后台执行并扩大点击区域。",
+        "调试安装脚本会先停止旧的小组件扩展进程，避免系统继续使用旧缓存。",
+        "主 App 启动和小组件操作时会写入刷新标记，帮助 WidgetKit 替换旧视图。"
     ]
 
     var body: some View {
@@ -31,6 +31,7 @@ struct ContentView: View {
                 header
                 widgetPreview
                 widgetGuide
+                customDateManagement
                 calendarAccess
                 holidayCalendarGuide
                 buildInfo
@@ -92,7 +93,7 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 10) {
             SectionTitle(systemName: "rectangle.grid.2x2", title: "怎么使用")
 
-            Text("在桌面空白处右键，选择“编辑小组件”，搜索“抬头日历”，然后添加大型或超大型小组件。")
+            Text("在桌面空白处右键，选择编辑小组件，搜索抬头日历，然后添加大型或超大型小组件。")
                 .font(.body)
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -101,6 +102,25 @@ struct ContentView: View {
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+
+            Text("添加小组件后即可一直显示，无需保持本应用启动，也不用让它在后台常驻。")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var customDateManagement: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionTitle(systemName: "star.circle.fill", title: "自定义特殊日期")
+
+            Text("添加你的重要日子，如生日、会议、纪念日等。这些日期会在日历中以浅紫色背景显示，并支持倒计时。")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            CustomDateManagementView()
+                .padding(.top, 8)
         }
     }
 
@@ -398,7 +418,7 @@ struct ContentView: View {
     }
 
     private var appVersion: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.15"
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.16"
     }
 
     private var buildTime: String {
@@ -421,11 +441,11 @@ private struct SectionTitle: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: systemName)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: 19, weight: .semibold))
                 .foregroundStyle(Color.accentColor)
 
             Text(title)
-                .font(.headline)
+                .font(.title2.weight(.semibold))
         }
     }
 }

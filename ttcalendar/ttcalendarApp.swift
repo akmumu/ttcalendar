@@ -50,6 +50,7 @@ private enum AppInstallRefreshCoordinator {
     }
 
     private static func reloadWidgets() {
+        CalendarEventCache.updateRefreshToken()
         WidgetCenter.shared.reloadTimelines(ofKind: CalendarWidgetIdentity.kind)
         WidgetCenter.shared.reloadAllTimelines()
     }

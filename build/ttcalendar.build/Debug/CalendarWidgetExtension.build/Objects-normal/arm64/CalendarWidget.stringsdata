@@ -1,0 +1,80 @@
+{
+  "source": "/Users/didi/workspace/apple/ttcalendar/CalendarWidget/CalendarWidget.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "距%@还有",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 364
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 368
+        }
+      },
+      {
+        "comment": "",
+        "key": "天",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 372
+        }
+      },
+      {
+        "comment": "",
+        "key": "距%@还有",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 394
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 398
+        }
+      },
+      {
+        "comment": "",
+        "key": "天",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 402
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 598
+        }
+      },
+      {
+        "comment": "",
+        "key": "抬头日历",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 723
+        }
+      },
+      {
+        "comment": "",
+        "key": "显示农历、节日和节气。",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 724
+        }
+      }
+    ]
+  },
+  "version": 1
+}

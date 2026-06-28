@@ -1,0 +1,128 @@
+{
+  "source": "/Users/didi/workspace/apple/ttcalendar/ttcalendar/ContentView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "抬头日历",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "桌面小组件日历",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 68
+        }
+      },
+      {
+        "comment": "",
+        "key": "抬头日历小组件预览图",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 88
+        }
+      },
+      {
+        "comment": "",
+        "key": "在桌面空白处右键，选择编辑小组件，搜索抬头日历，然后添加大型或超大型小组件。",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "大型显示单月，超大型显示本月和下月。小组件数据会读取本机日历中的节假日信息，并补充农历、节气和常见节日。",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 101
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加你的重要日子，如生日、会议、纪念日等。这些日期会在日历中以浅紫色背景显示，并支持倒计时。",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 112
+        }
+      },
+      {
+        "comment": "",
+        "key": "检查更新",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 134
+        }
+      },
+      {
+        "comment": "",
+        "key": "已检测到：%@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 199
+        }
+      },
+      {
+        "comment": "",
+        "key": "打开 Apple 日历",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 209
+        }
+      },
+      {
+        "comment": "",
+        "key": "重新检测",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 216
+        }
+      },
+      {
+        "comment": "",
+        "key": "create by akmumu",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 254
+        }
+      },
+      {
+        "comment": "",
+        "key": "打开 GitHub 仓库",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 263
+        }
+      },
+      {
+        "comment": "",
+        "key": "GitHub",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 259
+        }
+      },
+      {
+        "comment": "",
+        "key": "日历权限状态：%@",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 462
+        }
+      },
+      {
+        "comment": "",
+        "key": "节假日日历状态：%@",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 532
+        }
+      }
+    ]
+  },
+  "version": 1
+}

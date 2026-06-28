@@ -3,12 +3,13 @@
     <channel>
         <title>抬头日历</title>
         <item>
-            <title>1.15</title>
+            <title>1.16</title>
             <pubDate>Sat, 20 Jun 2026 12:52:05 +0800</pubDate>
-            <sparkle:version>15</sparkle:version>
-            <sparkle:shortVersionString>1.15</sparkle:shortVersionString>
+            <sparkle:version>16</sparkle:version>
+            <sparkle:shortVersionString>1.16</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>26.5</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/akmumu/ttcalendar/releases/download/1.15/ttcalendar.dmg" length="1932082" type="application/octet-stream" sparkle:edSignature="nQgn9xC4z29jl88B8DznW+M5agnbBK3vV7dgrkieMvgTesIOAuA0m4En3OK3xwWmBxVsvij+OKedWW44JqkPAw=="/>
+            <sparkle:releaseNotesLink>https://akmumu.github.io/ttcalendar/ttcalendar.html</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/akmumu/ttcalendar/releases/download/1.16/ttcalendar.dmg" length="2110415" type="application/octet-stream" sparkle:edSignature="udQFFoTMOOJBP6MBJfJx06a+LfP/J5da7jrz/rfyH4Cm4zrOtMLGPqTusveQ2JOxqW3rUvEIYohlnnzL7GG7AA=="/>
         </item>
     </channel>
 </rss>

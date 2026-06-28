@@ -12,6 +12,7 @@ struct CalendarDay: Identifiable, Hashable {
     let holidayBadgeText: String?
     let isRestDay: Bool
     let isWorkdayAdjustment: Bool
+    let customSpecialDate: CustomSpecialDate?
 
     var id: Date { date }
     var markerText: String? {
@@ -19,11 +20,15 @@ struct CalendarDay: Identifiable, Hashable {
     }
 
     var subtitle: String {
-        markerText ?? lunarText
+        customSpecialDate?.name ?? markerText ?? lunarText
     }
 
     var hasSpecialMarker: Bool {
-        isFestival || markerText != nil
+        isFestival || markerText != nil || customSpecialDate != nil
+    }
+
+    var isCustomSpecialDate: Bool {
+        customSpecialDate != nil
     }
 }
 
@@ -96,8 +101,14 @@ struct TodayInfo: Hashable {
     let displayText: String
 }
 
+struct UpcomingHighlights: Hashable {
+    let nextSpecialDay: NextSpecialDay?
+    let nextFestival: NextSpecialDay?
+    let nextSolarTerm: NextSpecialDay?
+}
+
 enum CalendarContent {
-    static func month(containing date: Date = Date()) -> CalendarMonth {
+    static func month(containing date: Date = Date(), today: Date = Date()) -> CalendarMonth {
         var calendar = Calendar.autoupdatingCurrent
         calendar.timeZone = .autoupdatingCurrent
         calendar.firstWeekday = 2
@@ -109,7 +120,7 @@ enum CalendarContent {
         let firstGridDate = calendar.date(byAdding: .day, value: -weekdayOffset, to: firstOfMonth) ?? firstOfMonth
         let currentMonth = calendar.component(.month, from: firstOfMonth)
         let currentYear = calendar.component(.year, from: firstOfMonth)
-        let todayDate = calendar.startOfDay(for: Date())
+        let todayDate = calendar.startOfDay(for: today)
 
         let days = (0..<42).compactMap { offset -> CalendarDay? in
             guard let dayDate = calendar.date(byAdding: .day, value: offset, to: firstGridDate) else {
@@ -131,6 +142,7 @@ enum CalendarContent {
             )
             let isRestDay = holiday?.badgeText == "休"
             let isWorkdayAdjustment = holiday?.badgeText == "班"
+            let customDate = CustomSpecialDateStore.customDate(for: dateComponents.month ?? 0, day: day)
 
             return CalendarDay(
                 date: normalizedDate,
@@ -143,7 +155,8 @@ enum CalendarContent {
                 isFestival: holidayDisplayName != nil || markers.contains(where: \.isFestival),
                 holidayBadgeText: holiday?.badgeText,
                 isRestDay: isRestDay,
-                isWorkdayAdjustment: isWorkdayAdjustment
+                isWorkdayAdjustment: isWorkdayAdjustment,
+                customSpecialDate: customDate
             )
         }
 
@@ -227,6 +240,84 @@ enum CalendarContent {
 
             return SolarTerm.term(onMonth: month, day: day, year: year)
         }
+    }
+
+    static func upcomingHighlights(after date: Date = Date(), includesFestivalAndSolarTerm: Bool = true) -> UpcomingHighlights {
+        let calendar = contentCalendar()
+        let startDate = calendar.startOfDay(for: date)
+        var nextSpecialDay: NextSpecialDay?
+        var nextFestival: NextSpecialDay?
+        var nextSolarTerm: NextSpecialDay?
+
+        for offset in 0...370 {
+            guard let candidateDate = calendar.date(byAdding: .day, value: offset, to: startDate) else {
+                continue
+            }
+
+            let lunar = LunarFormatter.text(for: candidateDate, calendar: calendar)
+            let markers = DayMarker.markers(for: candidateDate, lunar: lunar, calendar: calendar)
+            let holiday = HolidaySchedule.annotation(for: candidateDate, calendar: calendar)
+            let holidayDisplayName = visibleHolidayDisplayName(
+                holiday?.displayName,
+                badgeText: holiday?.badgeText,
+                markers: markers
+            )
+
+            let components = calendar.dateComponents([.month, .day], from: candidateDate)
+            let customDate = CustomSpecialDateStore.customDate(for: components.month ?? 0, day: components.day ?? 0)
+
+            var allNames = [holidayDisplayName] + markers.map(\.name)
+            if let customDate {
+                allNames.insert(customDate.name, at: 0)
+            }
+
+            if nextSpecialDay == nil,
+               let name = uniqueMarkerTexts(allNames).first {
+                nextSpecialDay = NextSpecialDay(
+                    date: candidateDate,
+                    name: name,
+                    daysRemaining: offset,
+                    dateText: dateText(for: candidateDate, calendar: calendar)
+                )
+            }
+
+            if includesFestivalAndSolarTerm,
+               nextFestival == nil,
+               let name = uniqueMarkerTexts([holidayDisplayName] + markers.filter(\.isFestival).map(\.name)).first {
+                nextFestival = NextSpecialDay(
+                    date: candidateDate,
+                    name: name,
+                    daysRemaining: offset,
+                    dateText: dateText(for: candidateDate, calendar: calendar)
+                )
+            }
+
+            if includesFestivalAndSolarTerm, nextSolarTerm == nil {
+                let components = calendar.dateComponents([.year, .month, .day], from: candidateDate)
+                if let year = components.year,
+                   let month = components.month,
+                   let day = components.day,
+                   let name = SolarTerm.term(onMonth: month, day: day, year: year) {
+                    nextSolarTerm = NextSpecialDay(
+                        date: candidateDate,
+                        name: name,
+                        daysRemaining: offset,
+                        dateText: dateText(for: candidateDate, calendar: calendar)
+                    )
+                }
+            }
+
+            if nextSpecialDay != nil,
+               (!includesFestivalAndSolarTerm || (nextFestival != nil && nextSolarTerm != nil)) {
+                break
+            }
+        }
+
+        return UpcomingHighlights(
+            nextSpecialDay: nextSpecialDay,
+            nextFestival: nextFestival,
+            nextSolarTerm: nextSolarTerm
+        )
     }
 
     private static func nextDay(
@@ -394,6 +485,7 @@ enum CalendarEventCache {
     static let appGroupIdentifier = "group.akmumu.ttcalendar"
 
     private static let cacheKey = "cachedHolidayEvents"
+    private static let refreshTokenKey = "widgetRefreshToken"
 
     static func annotation(for date: Date, calendar: Calendar) -> HolidayAnnotation? {
         let dateKey = dateKey(for: date, calendar: calendar)
@@ -419,6 +511,17 @@ enum CalendarEventCache {
         }
 
         userDefaults.set(data, forKey: cacheKey)
+    }
+
+    @discardableResult
+    static func updateRefreshToken() -> Double {
+        let token = Date().timeIntervalSinceReferenceDate
+        userDefaults.set(token, forKey: refreshTokenKey)
+        return token
+    }
+
+    static var refreshToken: Double {
+        userDefaults.double(forKey: refreshTokenKey)
     }
 
     static func dateKey(for date: Date, calendar: Calendar) -> String {

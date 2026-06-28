@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font: -apple-system-body;
+            font-family: -apple-system, "PingFang SC", sans-serif;
+            color: #1d1d1f;
+            margin: 0;
+            padding: 4px 2px;
+            line-height: 1.5;
+        }
+        h2 { font-size: 15px; margin: 0 0 8px; }
+        ul { margin: 0; padding-left: 20px; }
+        li { margin-bottom: 6px; }
+        .tag {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 4px;
+            padding: 0 5px;
+            margin-right: 4px;
+            color: #fff;
+        }
+        .new { background: #8a5cf6; }
+        .fix { background: #34c759; }
+        .imp { background: #007aff; }
+        @media (prefers-color-scheme: dark) {
+            body { color: #f5f5f7; }
+        }
+    </style>
+</head>
+<body>
+    <h2>抬头日历 1.16</h2>
+    <ul>
+        <li><span class="tag new">新增</span>自定义特殊日期：可在主应用中添加生日、会议、纪念日等重要日期，名称最多三个字，并自定义右上角的单字标记。小组件以紫色样式显示，并支持近期倒计时提醒。</li>
+        <li><span class="tag fix">修复</span>自定义日期的名称现在会正确显示在日历格子下方（此前会被农历文字覆盖）。</li>
+        <li><span class="tag imp">优化</span>重做添加 / 编辑日期弹窗的布局，对齐与层次更清晰，并支持回车保存、Esc 取消。</li>
+    </ul>
+</body>
+</html>

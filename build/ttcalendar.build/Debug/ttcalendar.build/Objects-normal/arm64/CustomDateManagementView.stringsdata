@@ -1,0 +1,240 @@
+{
+  "source": "/Users/didi/workspace/apple/ttcalendar/ttcalendar/CustomDateManagementView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "自定义特殊日期",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 19
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "还没有自定义日期",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 63
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击上方\"添加\"按钮创建你的第一个特殊日期",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 67
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld月%lld日",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 123
+        }
+      },
+      {
+        "comment": "",
+        "key": "每年",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "基本信息",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 221
+        }
+      },
+      {
+        "comment": "",
+        "key": "日期",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 244
+        }
+      },
+      {
+        "comment": "",
+        "key": "显示标记",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 272
+        }
+      },
+      {
+        "comment": "",
+        "key": "名称",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 223
+        }
+      },
+      {
+        "comment": "",
+        "key": "例如: 小明生日",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 225
+        }
+      },
+      {
+        "comment": "",
+        "key": "类型",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 230
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 232
+        }
+      },
+      {
+        "comment": "",
+        "key": "每年重复",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 269
+        }
+      },
+      {
+        "comment": "",
+        "key": "月份",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 246
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 248
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld月",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 250
+        }
+      },
+      {
+        "comment": "",
+        "key": "日期",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 258
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 260
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld日",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 262
+        }
+      },
+      {
+        "comment": "",
+        "key": "右上角字符",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 274
+        }
+      },
+      {
+        "comment": "",
+        "key": "(显示在日历格子右上角)",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 285
+        }
+      },
+      {
+        "comment": "",
+        "key": "一个字",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 276
+        }
+      },
+      {
+        "comment": "",
+        "key": "预览",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 291
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 296
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 326
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 331
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加特殊日期",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 349
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑特殊日期",
+        "location": {
+          "startingColumn": 62,
+          "startingLine": 349
+        }
+      }
+    ]
+  },
+  "version": 1
+}

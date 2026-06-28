@@ -7,12 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0AE81C5000000001005229AF /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 0AE81C5000000002005229AF /* Sparkle */; };
 		0AE81C282FE0184C005229AF /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0AE81C272FE0184B005229AF /* WidgetKit.framework */; };
 		0AE81C2A2FE0184C005229AF /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0AE81C292FE0184C005229AF /* SwiftUI.framework */; };
 		0AE81C392FE0184D005229AF /* CalendarWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0AE81C252FE0184B005229AF /* CalendarWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		0AE81C422FE07000005229AF /* EventKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0AE81C412FE07000005229AF /* EventKit.framework */; };
 		0AE81C432FE07000005229AF /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0AE81C272FE0184B005229AF /* WidgetKit.framework */; };
+		0AE81C5000000001005229AF /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 0AE81C5000000002005229AF /* Sparkle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,19 +48,19 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		0AE81C5000000004005229AF /* Exceptions for "ttcalendar" folder in "ttcalendar" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 0AE81C122FE0024F005229AF /* ttcalendar */;
-		};
 		0AE81C3A2FE0184D005229AF /* Exceptions for "CalendarWidget" folder in "CalendarWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
 			target = 0AE81C242FE0184B005229AF /* CalendarWidgetExtension */;
+		};
+		0AE81C5000000004005229AF /* Exceptions for "ttcalendar" folder in "ttcalendar" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0AE81C122FE0024F005229AF /* ttcalendar */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -221,13 +221,13 @@
 			);
 			mainGroup = 0AE81C0A2FE0024F005229AF;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				0AE81C5000000003005229AF /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 0AE81C142FE0024F005229AF /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
-			packageReferences = (
-				0AE81C5000000003005229AF /* XCRemoteSwiftPackageReference "Sparkle" */,
-			);
 			targets = (
 				0AE81C122FE0024F005229AF /* ttcalendar */,
 				0AE81C242FE0184B005229AF /* CalendarWidgetExtension */,
@@ -406,7 +406,7 @@
 				CODE_SIGN_ENTITLEMENTS = ttcalendar/ttcalendar.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 5EDXFWFU52;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -424,7 +424,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.15;
+				MARKETING_VERSION = 1.16;
 				PRODUCT_BUNDLE_IDENTIFIER = akmumu.ttcalendar;
 				PRODUCT_NAME = "抬头日历";
 				REGISTER_APP_GROUPS = YES;
@@ -445,7 +445,7 @@
 				CODE_SIGN_ENTITLEMENTS = ttcalendar/ttcalendar.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 5EDXFWFU52;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -463,7 +463,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.15;
+				MARKETING_VERSION = 1.16;
 				PRODUCT_BUNDLE_IDENTIFIER = akmumu.ttcalendar;
 				PRODUCT_NAME = "抬头日历";
 				REGISTER_APP_GROUPS = YES;
@@ -483,7 +483,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = CalendarWidget/CalendarWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 5EDXFWFU52;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -498,7 +498,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.5;
-				MARKETING_VERSION = 1.15;
+				MARKETING_VERSION = 1.16;
 				PRODUCT_BUNDLE_IDENTIFIER = akmumu.ttcalendar.CalendarWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -518,7 +518,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = CalendarWidget/CalendarWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 5EDXFWFU52;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -533,7 +533,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.5;
-				MARKETING_VERSION = 1.15;
+				MARKETING_VERSION = 1.16;
 				PRODUCT_BUNDLE_IDENTIFIER = akmumu.ttcalendar.CalendarWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;

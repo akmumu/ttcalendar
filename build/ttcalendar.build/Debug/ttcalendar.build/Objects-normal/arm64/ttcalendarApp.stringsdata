@@ -1,0 +1,24 @@
+{
+  "source": "/Users/didi/workspace/apple/ttcalendar/ttcalendar/ttcalendarApp.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "抬头日历",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "检查更新…",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 72
+        }
+      }
+    ]
+  },
+  "version": 1
+}
