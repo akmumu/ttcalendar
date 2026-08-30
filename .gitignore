@@ -1,0 +1,13 @@
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+.DS_Store
+docs/*.dmg
+docs/*.zip
+docs/*.delta
+docs/old_updates/
+*.ed25519
+*.private-key
+SparklePrivateKey*
+/CLAUDE.md

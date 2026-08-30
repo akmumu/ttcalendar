@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font: -apple-system-body;
+            font-family: -apple-system, "PingFang SC", sans-serif;
+            color: #1d1d1f;
+            margin: 0;
+            padding: 4px 2px;
+            line-height: 1.5;
+        }
+        h2 { font-size: 15px; margin: 0 0 8px; }
+        ul { margin: 0; padding-left: 20px; }
+        li { margin-bottom: 6px; }
+        .tag {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 4px;
+            padding: 0 5px;
+            margin-right: 4px;
+            color: #fff;
+        }
+        .new { background: #8a5cf6; }
+        .fix { background: #34c759; }
+        .imp { background: #007aff; }
+        @media (prefers-color-scheme: dark) {
+            body { color: #f5f5f7; }
+        }
+    </style>
+</head>
+<body>
+    <h2>抬头日历 1.18</h2>
+    <ul>
+        <li><span class="tag fix">修复</span>主应用在深色模式下的背景、卡片、文字和分隔线颜色异常。</li>
+        <li><span class="tag fix">修复</span>小组件月份切换按钮在深色模式下颜色不协调的问题。</li>
+        <li><span class="tag imp">优化</span>调整发布包最低系统版本，兼容 macOS 14 及以上系统。</li>
+        <li><span class="tag imp">优化</span>改进免费分发打包流程，减少 Personal Team 签名导致的打开失败。</li>
+    </ul>
+</body>
+</html>

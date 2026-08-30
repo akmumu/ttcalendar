@@ -1,0 +1,24 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>抬头日历</title>
+        <item>
+            <title>1.21</title>
+            <pubDate>Sat, 20 Jun 2026 12:52:05 +0800</pubDate>
+            <sparkle:version>21</sparkle:version>
+            <sparkle:shortVersionString>1.21</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:releaseNotesLink>https://akmumu.github.io/ttcalendar/ttcalendar.html</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/akmumu/ttcalendar/releases/download/1.21/ttcalendar.dmg" length="2458876" type="application/octet-stream" sparkle:edSignature="hub7JsQI9z/6DXd1BPJH8w98zWFkEQCNsHr36WjO6BdebUiGPRdtp4b7b/VFe3w4CaZLEgjsuF/avDxJJV67Dg=="/>
+        </item>
+        <item>
+            <title>1.16</title>
+            <pubDate>Sat, 20 Jun 2026 12:52:05 +0800</pubDate>
+            <sparkle:version>16</sparkle:version>
+            <sparkle:shortVersionString>1.16</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.5</sparkle:minimumSystemVersion>
+            <sparkle:releaseNotesLink>https://akmumu.github.io/ttcalendar/ttcalendar.html</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/akmumu/ttcalendar/releases/download/1.16/ttcalendar.dmg" length="2177702" type="application/octet-stream" sparkle:edSignature="Kt0PImwRU0nfvafps6rop8WZ4IS1LappjPJezOlcntw8i0cJ8pQSe92X3e728pEwbrrGJxsdI1BCHh5KZbVCAg=="/>
+        </item>
+    </channel>
+</rss>
