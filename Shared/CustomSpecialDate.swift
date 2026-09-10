@@ -141,7 +141,6 @@ struct CustomSpecialDate: Identifiable, Codable, Hashable {
 }
 
 enum CustomSpecialDateStore {
-    static let appGroupIdentifier = "group.akmumu.ttcalendar"
     private static let storeKey = "customSpecialDates"
 
     static func load() -> [CustomSpecialDate] {
@@ -193,7 +192,7 @@ enum CustomSpecialDateStore {
         (dates ?? load()).first { $0.matches(date, calendar: calendar) }
     }
 
-    private static var userDefaults: UserDefaults {
-        UserDefaults(suiteName: appGroupIdentifier) ?? .standard
+    private static var userDefaults: WidgetPreferences {
+        .shared
     }
 }

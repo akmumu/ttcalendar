@@ -32,12 +32,13 @@
     </style>
 </head>
 <body>
-    <h2>抬头日历 1.22</h2>
+    <h2>抬头日历 1.23</h2>
     <ul>
-        <li><span class="tag imp">升级提示</span>因更新签名密钥轮换，1.21 及更早版本需要手动下载安装一次 1.22。</li>
-        <li><span class="tag fix">修复</span>桌面小组件可能无法显示 Apple 日历中的节假日和调休标记。</li>
-        <li><span class="tag imp">优化</span>节假日缓存改用 App Group 共享文件，提升主应用与小组件之间的数据同步可靠性。</li>
-        <li><span class="tag imp">优化</span>自动迁移旧版本节假日缓存，无需重新配置日历。</li>
+        <li><span class="tag fix">修复</span>免证书 DMG 安装后，小组件无法读取节假日及调休数据。</li>
+        <li><span class="tag imp">优化</span>假期、自定义日期和月份状态改用小组件自身容器共享，不再依赖 App Group。</li>
+        <li><span class="tag imp">优化</span>主应用迁移旧缓存，数据访问被拒绝时提供明确提示。</li>
+        <li><span class="tag imp">首次运行</span>请允许打开应用，并授权日历及小组件数据访问，无需关闭系统安全保护。</li>
+        <li><span class="tag imp">升级提示</span>使用旧更新密钥的版本需手动安装一次；保留新更新密钥的 1.22 可继续检查更新。</li>
     </ul>
 </body>
 </html>

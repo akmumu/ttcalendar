@@ -575,7 +575,7 @@ struct ContentView: View {
             refreshPreview()
             isRefreshingCalendar = false
             holidayCalendarMessage = granted
-                ? (holidayCalendarNames.isEmpty ? "还没检测到节假日日历" : "已刷新节假日数据")
+                ? (WidgetPreferences.shared.lastWriteError != nil ? "无法写入小组件数据，请允许访问小组件数据后重试" : (holidayCalendarNames.isEmpty ? "还没检测到节假日日历" : "已刷新节假日数据"))
                 : "未获得日历权限"
         }
     }
@@ -589,7 +589,9 @@ struct ContentView: View {
             refreshHolidayCalendarNames()
             refreshPreview()
             isRefreshingCalendar = false
-            calendarMessage = granted ? "已刷新小组件数据" : "未获得日历权限"
+            calendarMessage = granted
+                ? (WidgetPreferences.shared.lastWriteError != nil ? "无法写入小组件数据，请允许访问小组件数据后重试" : "已刷新小组件数据")
+                : "未获得日历权限"
         }
     }
 
@@ -597,7 +599,9 @@ struct ContentView: View {
         CalendarEventCache.updateRefreshToken()
         WidgetCenter.shared.reloadTimelines(ofKind: CalendarWidgetIdentity.kind)
         WidgetCenter.shared.reloadAllTimelines()
-        widgetRefreshMessage = "已请求刷新，稍候片刻生效。"
+        widgetRefreshMessage = WidgetPreferences.shared.lastWriteError != nil
+            ? "无法写入小组件数据，请允许访问小组件数据后重试"
+            : "已请求刷新，稍候片刻生效。"
         refreshPreview()
     }
 
@@ -608,7 +612,7 @@ struct ContentView: View {
     }
 
     private var appVersion: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.22"
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.23"
     }
 }
 

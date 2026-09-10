@@ -14,22 +14,7 @@ APP_PATH="${RELEASE_DIR}/${APP_NAME}"
 PACKAGE_SOURCE_DIR="${RELEASE_DIR}"
 PACKAGE_APP_PATH="${APP_PATH}"
 WORK_DIR=""
-
-cleanup() {
-  if [[ -n "${WORK_DIR}" && -d "${WORK_DIR}" ]]; then
-    rm -rf "${WORK_DIR}"
-  fi
-}
-
-trap cleanup EXIT
-
-expand_entitlements() {
-  local source="$1"
-  local bundle_id="$2"
-  local output="$3"
-
-  /usr/bin/sed 's|$(PRODUCT_BUNDLE_IDENTIFIER)|'"${bundle_id}"'|g' "${source}" > "${output}"
-}
+trap '[[ -z "$WORK_DIR" ]] || rm -rf "$WORK_DIR"' EXIT
 
 require_release_ready_app() {
   local app_path="$1"
@@ -74,59 +59,6 @@ EOF
   fi
 }
 
-adhoc_resign_for_free_distribution() {
-  local source_app="$1"
-  local signed_app="$2"
-  local sign_entitlements="${PROJECT_ROOT}/ttcalendar/ttcalendar.entitlements"
-  local widget_entitlements="${PROJECT_ROOT}/CalendarWidget/CalendarWidget.entitlements"
-  local app_bundle_id
-  local expanded_app_entitlements
-  local widget_bundle_id
-  local expanded_widget_entitlements
-
-  echo "Preparing unsigned Developer ID-free package copy"
-  ditto "${source_app}" "${signed_app}"
-
-  find "${signed_app}" -name embedded.provisionprofile -delete
-
-  app_bundle_id="$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${signed_app}/Contents/Info.plist")"
-  expanded_app_entitlements="${WORK_DIR}/ttcalendar.expanded.entitlements"
-  expand_entitlements "${sign_entitlements}" "${app_bundle_id}" "${expanded_app_entitlements}"
-
-  echo "Applying ad-hoc signatures for free distribution"
-  codesign --force --sign - --preserve-metadata=identifier,entitlements,flags,runtime \
-    "${signed_app}/Contents/Frameworks/Sparkle.framework"
-
-  if [[ -d "${signed_app}/Contents/PlugIns/CalendarWidgetExtension.appex" ]]; then
-    widget_bundle_id="$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${signed_app}/Contents/PlugIns/CalendarWidgetExtension.appex/Contents/Info.plist")"
-    expanded_widget_entitlements="${WORK_DIR}/CalendarWidget.expanded.entitlements"
-    expand_entitlements "${widget_entitlements}" "${widget_bundle_id}" "${expanded_widget_entitlements}"
-
-    codesign --force --sign - --entitlements "${expanded_widget_entitlements}" \
-      "${signed_app}/Contents/PlugIns/CalendarWidgetExtension.appex"
-  fi
-
-  codesign --force --sign - --entitlements "${expanded_app_entitlements}" \
-    "${signed_app}"
-
-  if ! codesign --verify --deep --strict --verbose=2 "${signed_app}"; then
-    cat >&2 <<EOF
-Unable to create a self-consistent ad-hoc signed app for DMG packaging.
-EOF
-    exit 65
-  fi
-
-  PACKAGE_SOURCE_DIR="${signed_app:h}"
-  PACKAGE_APP_PATH="${signed_app}"
-
-  cat <<EOF
-Created an ad-hoc signed DMG source for free distribution:
-  ${PACKAGE_APP_PATH}
-
-Users may still need to Control-click Open, or remove quarantine after download.
-EOF
-}
-
 if ! command -v create-dmg >/dev/null 2>&1; then
   echo "create-dmg not found. Install it first, for example: brew install create-dmg" >&2
   exit 69
@@ -145,12 +77,14 @@ EOF
   exit 66
 fi
 
+# Ad-hoc builds must use the extension's own container, never App Groups.
 if [[ "${STRICT_RELEASE_CHECKS:-0}" == "1" ]]; then
   require_release_ready_app "${APP_PATH}"
 else
-  echo "Using free distribution mode. Set STRICT_RELEASE_CHECKS=1 for Developer ID notarized releases."
-  WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ttcalendar-dmg.XXXXXX")"
-  adhoc_resign_for_free_distribution "${APP_PATH}" "${WORK_DIR}/${APP_NAME}"
+  WORK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/ttcalendar-dmg.XXXXXX")
+  PACKAGE_SOURCE_DIR="$WORK_DIR"
+  PACKAGE_APP_PATH="$WORK_DIR/$APP_NAME"
+  zsh "$SCRIPT_DIR/prepare_adhoc_app.sh" "$APP_PATH" "$PACKAGE_APP_PATH"
 fi
 
 if [[ -e "${DMG_PATH}" ]]; then
@@ -171,6 +105,7 @@ echo "Packaging ${PACKAGE_APP_PATH}"
 echo "Writing ${DMG_PATH}"
 
 create-dmg \
+  --skip-jenkins \
   --volname "${VOLUME_NAME}" \
   --window-size 500 340 \
   --icon-size 100 \

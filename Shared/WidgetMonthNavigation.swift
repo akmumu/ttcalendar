@@ -45,7 +45,7 @@ enum WidgetMonthNavigation {
         userDefaults.set(Date().timeIntervalSinceReferenceDate, forKey: lastInteractionKey)
     }
 
-    private static var userDefaults: UserDefaults {
-        UserDefaults(suiteName: CalendarEventCache.appGroupIdentifier) ?? .standard
+    private static var userDefaults: WidgetPreferences {
+        .shared
     }
 }

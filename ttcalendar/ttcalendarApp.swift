@@ -13,6 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
+        WidgetPreferences.shared.migrateLegacyData()
         AppInstallRefreshCoordinator.refreshOnLaunch()
         HolidayEventSync.shared.refreshAroundToday {
             AppInstallRefreshCoordinator.reloadWidgetsRepeatedly()
@@ -30,7 +31,7 @@ private enum AppInstallRefreshCoordinator {
     static func refreshOnLaunch() {
         let currentBuild = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""
 
-        let defaults = UserDefaults(suiteName: CalendarEventCache.appGroupIdentifier) ?? .standard
+        let defaults = WidgetPreferences.shared
         if !currentBuild.isEmpty, defaults.string(forKey: lastOpenedBuildKey) != currentBuild {
             WidgetMonthNavigation.reset()
             defaults.set(currentBuild, forKey: lastOpenedBuildKey)

@@ -521,10 +521,7 @@ struct CachedCalendarEvent: Codable, Hashable {
 }
 
 enum CalendarEventCache {
-    static let appGroupIdentifier = "group.akmumu.ttcalendar"
-
     private static let cacheKey = "cachedHolidayEvents"
-    private static let cacheFileName = "cachedHolidayEvents.json"
     private static let refreshTokenKey = "widgetRefreshToken"
 
     static func annotation(for date: Date, calendar: Calendar) -> HolidayAnnotation? {
@@ -550,11 +547,6 @@ enum CalendarEventCache {
             return
         }
 
-        if let cacheFileURL {
-            try? data.write(to: cacheFileURL, options: .atomic)
-        }
-
-        // Keep the legacy defaults value so existing installs can roll back safely.
         userDefaults.set(data, forKey: cacheKey)
         updateRefreshToken()
     }
@@ -563,7 +555,6 @@ enum CalendarEventCache {
     static func updateRefreshToken() -> Double {
         let token = Date().timeIntervalSinceReferenceDate
         userDefaults.set(token, forKey: refreshTokenKey)
-        userDefaults.synchronize()
         return token
     }
 
@@ -580,21 +571,11 @@ enum CalendarEventCache {
     }
 
     private static func load() -> [String: [CachedCalendarEvent]] {
-        if let cacheFileURL,
-           let data = try? Data(contentsOf: cacheFileURL),
-           let grouped = decode(data) {
-            return grouped
-        }
-
         guard let legacyData = userDefaults.data(forKey: cacheKey),
               let grouped = decode(legacyData) else {
             return [:]
         }
 
-        // Migrate data written by versions that only used shared UserDefaults.
-        if let cacheFileURL {
-            try? legacyData.write(to: cacheFileURL, options: .atomic)
-        }
         return grouped
     }
 
@@ -602,14 +583,8 @@ enum CalendarEventCache {
         try? JSONDecoder().decode([String: [CachedCalendarEvent]].self, from: data)
     }
 
-    private static var cacheFileURL: URL? {
-        FileManager.default
-            .containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier)?
-            .appendingPathComponent(cacheFileName, isDirectory: false)
-    }
-
-    private static var userDefaults: UserDefaults {
-        UserDefaults(suiteName: appGroupIdentifier) ?? .standard
+    private static var userDefaults: WidgetPreferences {
+        .shared
     }
 
     private static func preferredEvent(from events: [CachedCalendarEvent]) -> CachedCalendarEvent? {

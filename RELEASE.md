@@ -2,7 +2,11 @@
 
 这份流程保留当前习惯：先用 `Scripts/install_debug_widget.sh` 做本地功能测试，再用 Xcode Archive 导出 App，最后打包 DMG 并发布 Sparkle appcast。
 
-当前默认按免费分发模式打包：脚本会复制导出的 App，移除 embedded provisioning profile，并重新做 ad-hoc 签名，避免把 Personal Team 的不可验证签名链带进 DMG。用户首次打开时仍可能需要右键打开，或在隐私与安全性里选择仍要打开。
+1.23 默认支持免付费证书的 DMG 分发。主应用不启用 App Sandbox，小组件保留沙盒；两者通过小组件自身容器中的文件共享假期、自定义日期和月份状态，不依赖 App Group。旧版 App Group 缓存由主应用迁移，迁移失败不会删除原数据。
+
+打包脚本检查主应用和小组件的 `WidgetDataTransport=widgetContainer-v1`，仅对这种架构生成 ad-hoc 包，避免把 1.22 的 App Group 架构误打成无法读取数据的包。用户拖入 Applications 后，首次启动可能需要在系统设置中允许打开，并允许日历和小组件数据访问。不要求关闭 SIP、Gatekeeper 或授予完全磁盘访问权限。
+
+Developer ID 签名和公证仍可选，用于减少系统首次启动提示。Sparkle 的更新签名保持独立，继续使用原有 EdDSA 密钥。
 
 ## 0. 首次发布前生成 Sparkle 密钥
 
@@ -59,24 +63,34 @@ Scripts/install_debug_widget.sh
 
 Sparkle 主要使用 build 号比较版本，所以 `CURRENT_PROJECT_VERSION` 必须递增。
 
-## 3. Archive 并导出 App
+## 3. 构建免证书版本
+
+```sh
+xcodebuild -project ttcalendar.xcodeproj -scheme ttcalendar \
+  -configuration Release -destination 'generic/platform=macOS' \
+  -derivedDataPath /private/tmp/ttcalendar-release CODE_SIGNING_ALLOWED=NO build
+
+RELEASE_DIR=/private/tmp/ttcalendar-release/Build/Products/Release Scripts/package_dmg.sh
+```
+
+也可以使用 Xcode 导出 App 后交给打包脚本。若选择付费签名路线，在 Xcode 里：
 
 在 Xcode 里：
 
 1. Product -> Archive
 2. Organizer -> Distribute App
-3. 没有付费开发者账号时，选择能导出 `.app` 的方式即可；脚本会为免费分发重新 ad-hoc 签名
+3. 选择 Developer ID 导出
 4. 导出后确保目录形如：
 
 ```text
 /Users/didi/workspace/apple/release/抬头日历.app
 ```
 
-如果有付费 Apple Developer Program，并且希望用户无阻碍打开，再选择 Developer ID 面向外部分发，并完成 notarization 和 stapling。
+选择 Developer ID 路线时，导出后完成 notarization 和 stapling；默认免证书路线不需要此步骤。
 
 ## 4. 打包 DMG
 
-免费分发默认直接运行：
+默认免证书打包（仅修改临时副本，保留原构建）：
 
 ```sh
 Scripts/package_dmg.sh
@@ -100,11 +114,7 @@ Scripts/package_dmg.sh
 OVERWRITE_DMG=1 Scripts/package_dmg.sh
 ```
 
-用户如果仍看到系统拦截，优先让用户右键 App 选择打开；如果还是不行，可以清除下载隔离属性：
-
-```sh
-xattr -dr com.apple.quarantine /Applications/抬头日历.app
-```
+发布前必须实际验证已打包安装的桌面小组件能显示 Apple 日历的休假及调休标记。仅通过编译、主应用预览或 Sparkle 签名校验不代表小组件具备共享容器访问权限。
 
 ## 5. 可选：Developer ID notarized 发布
 
