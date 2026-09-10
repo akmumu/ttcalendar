@@ -3,22 +3,13 @@
     <channel>
         <title>抬头日历</title>
         <item>
-            <title>1.22</title>
-            <pubDate>Thu, 10 Sep 2026 23:43:15 +0800</pubDate>
-            <sparkle:version>22</sparkle:version>
-            <sparkle:shortVersionString>1.22</sparkle:shortVersionString>
+            <title>1.23</title>
+            <pubDate>Fri, 11 Sep 2026 00:19:52 +0800</pubDate>
+            <sparkle:version>23</sparkle:version>
+            <sparkle:shortVersionString>1.23</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:releaseNotesLink>https://akmumu.github.io/ttcalendar/ttcalendar.html</sparkle:releaseNotesLink>
-            <enclosure url="https://github.com/akmumu/ttcalendar/releases/download/1.22/ttcalendar.dmg" length="2462645" type="application/octet-stream" sparkle:edSignature="WxqCqrX31nk8E1y0mGNSOPF5F8FGhqxyzouiUtbx1qZHBp/nq6o7GSHLlfXIVaHUwoln/ZTR+asKZ/8o+A42Cg=="/>
-        </item>
-        <item>
-            <title>1.16</title>
-            <pubDate>Sat, 20 Jun 2026 12:52:05 +0800</pubDate>
-            <sparkle:version>16</sparkle:version>
-            <sparkle:shortVersionString>1.16</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.5</sparkle:minimumSystemVersion>
-            <sparkle:releaseNotesLink>https://akmumu.github.io/ttcalendar/ttcalendar.html</sparkle:releaseNotesLink>
-            <enclosure url="https://github.com/akmumu/ttcalendar/releases/download/1.16/ttcalendar.dmg" length="2177702" type="application/octet-stream" sparkle:edSignature="Kt0PImwRU0nfvafps6rop8WZ4IS1LappjPJezOlcntw8i0cJ8pQSe92X3e728pEwbrrGJxsdI1BCHh5KZbVCAg=="/>
+            <sparkle:releaseNotesLink>https://akmumu.github.io/ttcalendar/ttcalendar-1.23.html</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/akmumu/ttcalendar/releases/download/1.23/ttcalendar-1.23.dmg" length="2882471" type="application/octet-stream" sparkle:edSignature="7uryylN3RbpNyMqKX2WOxOGeBXkeg+8nNTngiwFZd8Gb8/yJZRvrXg7ZCoWDYIdpzOQohV/rIaDSRHkkNpo4AQ=="/>
         </item>
     </channel>
 </rss>
