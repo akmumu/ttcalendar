@@ -6,7 +6,13 @@
 
 ## 0. 首次发布前生成 Sparkle 密钥
 
-当前还没有对应私钥，所以在第一次对外发布前必须生成一套新的 Sparkle EdDSA 密钥，并把新的公钥写进 `ttcalendar/Info.plist`。
+当前使用 Keychain account `akmumu.ttcalendar` 保存 Sparkle EdDSA 私钥，公钥为：
+
+```text
+CednorgFOaxIy8wQb0PNbx+OhsiGsVJtB+PvgExrtbM=
+```
+
+新电脑首次发布前，必须从当前电脑导出并导入这把私钥，不能直接生成新密钥。
 
 ```sh
 Scripts/generate_sparkle_keys.sh
@@ -14,19 +20,27 @@ Scripts/generate_sparkle_keys.sh
 
 脚本会把私钥保存在 macOS Keychain 下，并更新 `SUPublicEDKey`。私钥不要提交到 Git，也不要放进 release 目录。
 
-已经发布过的 App 不能随意更换 `SUPublicEDKey`。1.13 使用的是默认 Keychain account `ed25519` 对应的公钥，后续版本必须继续用这把钥匙签名：
+1.22 因原私钥无法恢复，轮换到了上述新密钥。1.21 及更早版本仍信任旧公钥，因此无法通过应用内更新跨越这次轮换，必须手动安装一次 1.22。安装 1.22 后，后续版本继续使用 `akmumu.ttcalendar` 这把密钥即可恢复自动更新。
+
+旧公钥仅保留用于记录：
 
 ```text
 prXVolYqRBZ2dxSMY3Ga/pF+AdwrlcCc/XetU/60R2o=
 ```
 
-如果要换 account：
+迁移到另一台电脑时，先在当前电脑导出：
 
 ```sh
-SPARKLE_KEY_ACCOUNT=akmumu.ttcalendar Scripts/generate_sparkle_keys.sh
+"$(Scripts/find_sparkle_tool.sh generate_keys)" --account akmumu.ttcalendar -x sparkle-private-key
 ```
 
-只有在还没有任何外部版本使用 Sparkle 更新时，才可以换 account 或换公钥。
+然后在新电脑导入：
+
+```sh
+"$(Scripts/find_sparkle_tool.sh generate_keys)" --account akmumu.ttcalendar -f sparkle-private-key
+```
+
+确认导入完成后安全删除导出的私钥文件。
 
 ## 1. 开发测试
 
@@ -147,7 +161,7 @@ Scripts/update_appcast.sh
 脚本默认会：
 
 - 从 `/Users/didi/workspace/apple/ttcalendar.dmg` 读取 DMG
-- 用 Keychain 里的 `ed25519` 私钥签名
+- 用 Keychain 里的 `akmumu.ttcalendar` 私钥签名
 - 生成或更新 `docs/appcast.xml`
 - 默认下载地址前缀为 `https://github.com/akmumu/ttcalendar/releases/download/版本号/`
 
