@@ -524,6 +524,7 @@ enum CalendarEventCache {
     static let appGroupIdentifier = "group.akmumu.ttcalendar"
 
     private static let cacheKey = "cachedHolidayEvents"
+    private static let cacheFileName = "cachedHolidayEvents.json"
     private static let refreshTokenKey = "widgetRefreshToken"
 
     static func annotation(for date: Date, calendar: Calendar) -> HolidayAnnotation? {
@@ -549,13 +550,20 @@ enum CalendarEventCache {
             return
         }
 
+        if let cacheFileURL {
+            try? data.write(to: cacheFileURL, options: .atomic)
+        }
+
+        // Keep the legacy defaults value so existing installs can roll back safely.
         userDefaults.set(data, forKey: cacheKey)
+        updateRefreshToken()
     }
 
     @discardableResult
     static func updateRefreshToken() -> Double {
         let token = Date().timeIntervalSinceReferenceDate
         userDefaults.set(token, forKey: refreshTokenKey)
+        userDefaults.synchronize()
         return token
     }
 
@@ -572,12 +580,32 @@ enum CalendarEventCache {
     }
 
     private static func load() -> [String: [CachedCalendarEvent]] {
-        guard let data = userDefaults.data(forKey: cacheKey),
-              let grouped = try? JSONDecoder().decode([String: [CachedCalendarEvent]].self, from: data) else {
+        if let cacheFileURL,
+           let data = try? Data(contentsOf: cacheFileURL),
+           let grouped = decode(data) {
+            return grouped
+        }
+
+        guard let legacyData = userDefaults.data(forKey: cacheKey),
+              let grouped = decode(legacyData) else {
             return [:]
         }
 
+        // Migrate data written by versions that only used shared UserDefaults.
+        if let cacheFileURL {
+            try? legacyData.write(to: cacheFileURL, options: .atomic)
+        }
         return grouped
+    }
+
+    private static func decode(_ data: Data) -> [String: [CachedCalendarEvent]]? {
+        try? JSONDecoder().decode([String: [CachedCalendarEvent]].self, from: data)
+    }
+
+    private static var cacheFileURL: URL? {
+        FileManager.default
+            .containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier)?
+            .appendingPathComponent(cacheFileName, isDirectory: false)
     }
 
     private static var userDefaults: UserDefaults {
