@@ -741,14 +741,16 @@ private struct DraggableDateCalendar: View {
     var body: some View {
         VStack(spacing: 8) {
             HStack {
+                monthNavigationButton(offset: -1, label: "上个月", systemImage: "chevron.left")
+
+                Spacer()
+
                 Text(displayedMonth, format: .dateTime.year().month(.wide))
                     .font(.headline)
 
                 Spacer()
 
-                Label("拖动日期调整", systemImage: "hand.draw")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                monthNavigationButton(offset: 1, label: "下个月", systemImage: "chevron.right")
             }
 
             HStack(spacing: 0) {
@@ -770,6 +772,10 @@ private struct DraggableDateCalendar: View {
             }
             .contentShape(Rectangle())
             .gesture(dragGesture)
+
+            Label("拖动日期调整", systemImage: "hand.draw")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
         .padding(12)
@@ -777,6 +783,22 @@ private struct DraggableDateCalendar: View {
         .onChange(of: selectedDate) { _, date in
             displayedMonth = calendar.startOfMonth(for: date)
         }
+    }
+
+    private func monthNavigationButton(offset: Int, label: String, systemImage: String) -> some View {
+        Button {
+            if let month = calendar.date(byAdding: .month, value: offset, to: displayedMonth) {
+                displayedMonth = calendar.startOfMonth(for: month)
+            }
+        } label: {
+            Image(systemName: systemImage)
+                .font(.system(size: 12, weight: .semibold))
+                .frame(width: 28, height: 28)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+        .help(label)
     }
 
     private func dayCell(_ date: Date) -> some View {
