@@ -25,6 +25,7 @@
 - 超大型桌面小组件：同时展示本月和下月，并补充今日信息、近期节日和节气提醒。
 - 小组件内月份切换：支持上个月、下个月和回到本月。
 - 自定义特殊日期：在主应用中添加生日、会议、纪念日等重要日期，名称最多三个字，可自定义右上角单字标记；小组件以紫色样式显示并支持近期倒计时提醒。
+- 本地通知提醒：为每个自定义日期单独开启通知，选择当天或提前 1、3、7 天及提醒时间；提前提醒时可同时保留当天提醒。默认关闭，首次保存开启提醒的日期时申请通知权限。
 - Apple 日历同步：读取本机日历中名称包含“节假日”“假日”或 “holiday” 的日历数据，提高调休和休班信息准确度。
 - Sparkle 更新：应用内支持手动检查更新。
 
@@ -105,6 +106,21 @@ Scripts/generate_sparkle_keys.sh
 ## 日历数据说明
 
 抬头日历会优先读取本机 Apple 日历中的节假日数据，并结合内置农历、节日和节气逻辑生成小组件内容。如果没有授予日历权限，应用仍可显示内置数据，但调休和休班信息可能不如系统节假日日历完整。
+
+## 日期通知提醒
+
+在“添加日期”或“编辑特殊日期”的“提醒”区域开启“通知提醒”，设置提前天数和时间后保存。通知由 macOS 安排，应用无需保持运行；编辑、删除日期或关闭提醒时会同步更新通知。系统通知权限被拒绝时，日期和提醒偏好仍会保存，界面会提示打开通知设置；允许后回到应用即可重新安排。通知的实际展示受系统通知设置和专注模式影响。
+
+普通年度日期使用系统年度重复通知；2 月 29 日及涉及闰日的提前提醒（例如 3 月 1 日提前一天）按具体年份安排未来 8 年，并在打开应用时续排，确保 2 月 29 日仅在闰年提醒。已过的提醒时间不会补发。应用最多保留 60 条待发请求，超过时优先安排最近的提醒并显示续排提示。
+
+日期计算回归测试（不发送通知、不修改个人日期）：
+
+```sh
+swiftc -module-cache-path /private/tmp/ttcalendar-reminder-module-cache Shared/WidgetPreferences.swift Shared/DateReminder.swift Shared/CustomSpecialDate.swift ttcalendar/DateReminderPlan.swift Scripts/test_date_reminders.swift -o /private/tmp/ttcalendar-reminder-tests
+/private/tmp/ttcalendar-reminder-tests
+swiftc -module-cache-path /private/tmp/ttcalendar-reminder-module-cache Shared/WidgetPreferences.swift Shared/DateReminder.swift Shared/CustomSpecialDate.swift ttcalendar/DateReminderPlan.swift ttcalendar/DateReminderService.swift Scripts/test_reminder_service.swift -o /private/tmp/ttcalendar-service-tests
+/private/tmp/ttcalendar-service-tests
+```
 
 ## 图标生成
 

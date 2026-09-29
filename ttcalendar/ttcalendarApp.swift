@@ -14,6 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         WidgetPreferences.shared.migrateLegacyData()
+        DateReminderService.shared.start()
         AppInstallRefreshCoordinator.refreshOnLaunch()
         HolidayEventSync.shared.refreshAroundToday {
             AppInstallRefreshCoordinator.reloadWidgetsRepeatedly()
@@ -22,6 +23,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         true
+    }
+
+    func applicationDidBecomeActive(_ notification: Notification) {
+        DateReminderService.shared.refresh()
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard DateReminderService.shared.isUpdating else { return .terminateNow }
+        Task {
+            await DateReminderService.shared.finishPendingUpdates()
+            sender.reply(toApplicationShouldTerminate: true)
+        }
+        return .terminateLater
     }
 }
 

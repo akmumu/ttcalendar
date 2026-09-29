@@ -7,6 +7,7 @@
 
 import SwiftUI
 import WidgetKit
+import UserNotifications
 
 struct CustomDateManagementView: View {
     private enum DateList: String, CaseIterable {
@@ -22,6 +23,7 @@ struct CustomDateManagementView: View {
     @State private var showingAddSheet = false
     @State private var editingDate: CustomSpecialDate?
     @State private var selectedList: DateList = .upcoming
+    @ObservedObject private var reminders = DateReminderService.shared
 
     private var upcomingDates: [CustomSpecialDate] {
         customDates
@@ -100,11 +102,33 @@ struct CustomDateManagementView: View {
 
                 dateList
             }
+
+            reminderStatus
+        }
+    }
+
+    @ViewBuilder
+    private var reminderStatus: some View {
+        if let message = reminders.errorMessage ?? reminders.statusMessage {
+            VStack(alignment: .leading, spacing: 6) {
+                Label(message, systemImage: reminders.errorMessage == nil ? "bell" : "exclamationmark.triangle")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if !reminders.isAuthorized {
+                    Button("打开通知设置") { reminders.openNotificationSettings() }
+                } else if reminders.errorMessage != nil {
+                    Button("重试安排提醒") { reminders.refresh() }
+                        .disabled(reminders.isUpdating)
+                }
+            }
         }
     }
 
     private var compactBody: some View {
         VStack(spacing: 0) {
+            reminderStatus
+                .padding(.horizontal, 12)
             if upcomingDates.isEmpty {
                 compactEmptyState
             } else {
@@ -287,6 +311,7 @@ struct CustomDateManagementView: View {
 
     private func finishDatesChange() {
         loadDates()
+        reminders.refresh()
         reloadWidgets()
         onDatesChanged?()
     }
@@ -318,6 +343,12 @@ struct CustomDateRow: View {
                 Text(date.name)
                     .font(.callout.weight(.semibold))
                     .foregroundStyle(isArchived ? .secondary : .primary)
+
+                if let reminder = date.reminder, !isArchived {
+                    Label(reminder.summary, systemImage: "bell")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
 
                 HStack(spacing: 8) {
                     Text(date.managementDateText)
@@ -466,6 +497,10 @@ struct CustomDateEditView: View {
     @State private var name: String
     @State private var isYearly: Bool
     @State private var previewDragStartDate: Date?
+    @State private var reminderEnabled: Bool
+    @State private var reminder: DateReminder
+    @State private var isSaving = false
+    @ObservedObject private var reminders = DateReminderService.shared
 
     private let editingDate: CustomSpecialDate?
     private let onSave: (CustomSpecialDate) -> Void
@@ -473,6 +508,8 @@ struct CustomDateEditView: View {
     init(editingDate: CustomSpecialDate? = nil, onSave: @escaping (CustomSpecialDate) -> Void) {
         self.editingDate = editingDate
         self.onSave = onSave
+        _reminderEnabled = State(initialValue: editingDate?.reminder != nil)
+        _reminder = State(initialValue: editingDate?.reminder ?? DateReminder())
 
         if let date = editingDate {
             let calendar = Calendar.current
@@ -559,6 +596,8 @@ struct CustomDateEditView: View {
                 } footer: {
                     Text("标记会显示在日历格子的右上角，名称显示在格子下方；按住预览向左或向右拖动，也可直接调整日期。")
                 }
+
+                reminderSection
             }
             .formStyle(.grouped)
 
@@ -571,18 +610,69 @@ struct CustomDateEditView: View {
                     dismiss()
                 }
                 .keyboardShortcut(.cancelAction)
+                .disabled(isSaving)
 
                 Button("保存") {
-                    saveDate()
+                    Task {
+                        isSaving = true
+                        if reminderEnabled { await reminders.requestAuthorization() }
+                        saveDate()
+                        isSaving = false
+                    }
                 }
                 .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.defaultAction)
-                .disabled(name.isEmpty || customLabel.isEmpty)
+                .disabled(name.isEmpty || customLabel.isEmpty || isSaving)
             }
             .padding(.horizontal, 24)
             .padding(.vertical, 14)
         }
         .frame(width: 480, height: 720)
+        .interactiveDismissDisabled(isSaving)
+        .task { await reminders.updateAuthorization() }
+    }
+
+    private var reminderSection: some View {
+        Section {
+            Toggle("通知提醒", isOn: $reminderEnabled)
+            if reminderEnabled {
+                Picker("提前提醒", selection: $reminder.daysBefore) {
+                    ForEach(DateReminder.advanceOptions, id: \.self) { days in
+                        Text(days == 0 ? "当天" : "提前 \(days) 天").tag(days)
+                    }
+                }
+                DatePicker("提醒时间", selection: reminderTime, displayedComponents: .hourAndMinute)
+                if reminder.daysBefore > 0 {
+                    Toggle("当天也提醒", isOn: $reminder.alsoOnDay)
+                }
+                if reminders.authorizationStatus == .denied {
+                    Text("系统通知权限已关闭。设置仍会保存，允许通知并回到应用后生效。")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                    Button("打开通知设置") { reminders.openNotificationSettings() }
+                }
+                if let error = reminders.errorMessage {
+                    Text(error).font(.caption).foregroundStyle(.orange)
+                }
+            }
+        } header: {
+            Text("提醒")
+        } footer: {
+            Text(reminderEnabled
+                 ? "保存时申请通知权限；按本地时间提醒，无需保持应用运行。已过的提醒时间会跳过。普通年度日期自动重复；涉及闰日的提醒预排未来 8 年，打开应用时续排。"
+                 : "默认关闭，可为这个日期单独开启系统通知。")
+        }
+        .disabled(isSaving)
+    }
+
+    private var reminderTime: Binding<Date> {
+        Binding {
+            Calendar.current.date(from: DateComponents(year: 2001, month: 1, day: 1,
+                                                       hour: reminder.hour, minute: reminder.minute)) ?? Date()
+        } set: { date in
+            reminder.hour = Calendar.current.component(.hour, from: date)
+            reminder.minute = Calendar.current.component(.minute, from: date)
+        }
     }
 
     private var header: some View {
@@ -666,7 +756,8 @@ struct CustomDateEditView: View {
             category: category,
             customLabel: customLabel.isEmpty ? type.defaultLabel : customLabel,
             name: name,
-            isYearly: isYearly
+            isYearly: isYearly,
+            reminder: reminderEnabled ? reminder : nil
         )
 
         onSave(date)

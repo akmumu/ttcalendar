@@ -10,6 +10,7 @@ struct CustomSpecialDate: Identifiable, Codable, Hashable {
     var customLabel: String // 单字标记，如"生"、"会"等
     var name: String // 完整名称，如"小明生日"
     var isYearly: Bool // 是否每年重复
+    var reminder: DateReminder? // nil 表示关闭；兼容已有数据
 
     enum DateType: String, Codable, CaseIterable {
         case birthday = "生日"
@@ -50,9 +51,10 @@ struct CustomSpecialDate: Identifiable, Codable, Hashable {
         case customLabel
         case name
         case isYearly
+        case reminder
     }
 
-    init(id: UUID = UUID(), year: Int? = nil, month: Int, day: Int, type: DateType, category: DateCategory = .life, customLabel: String? = nil, name: String, isYearly: Bool = true) {
+    init(id: UUID = UUID(), year: Int? = nil, month: Int, day: Int, type: DateType, category: DateCategory = .life, customLabel: String? = nil, name: String, isYearly: Bool = true, reminder: DateReminder? = nil) {
         self.id = id
         self.year = isYearly ? nil : year
         self.month = month
@@ -62,6 +64,7 @@ struct CustomSpecialDate: Identifiable, Codable, Hashable {
         self.customLabel = customLabel ?? type.defaultLabel
         self.name = name
         self.isYearly = isYearly
+        self.reminder = reminder
     }
 
     init(from decoder: Decoder) throws {
@@ -75,6 +78,7 @@ struct CustomSpecialDate: Identifiable, Codable, Hashable {
         customLabel = try container.decode(String.self, forKey: .customLabel)
         name = try container.decode(String.self, forKey: .name)
         isYearly = try container.decode(Bool.self, forKey: .isYearly)
+        reminder = try container.decodeIfPresent(DateReminder.self, forKey: .reminder)
     }
 
     func matches(month: Int, day: Int) -> Bool {
@@ -111,6 +115,11 @@ struct CustomSpecialDate: Identifiable, Codable, Hashable {
             guard let candidate = calendar.date(from: DateComponents(year: candidateYear, month: month, day: day)) else {
                 continue
             }
+
+            // Foundation normalizes February 29 into March in non-leap years.
+            // Keep the stored birthday intact when opening it in the reminder editor.
+            let actual = calendar.dateComponents([.month, .day], from: candidate)
+            guard actual.month == month, actual.day == day else { continue }
 
             let normalizedCandidate = calendar.startOfDay(for: candidate)
             if normalizedCandidate >= startDate {

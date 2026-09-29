@@ -1,232 +1,260 @@
-# 发布流程
+# 抬头日历发布 SOP
 
-这份流程保留当前习惯：先用 `Scripts/install_debug_widget.sh` 做本地功能测试，再用 Xcode Archive 导出 App，最后打包 DMG 并发布 Sparkle appcast。
+适用于当前 macOS App + WidgetKit + Sparkle + GitHub Releases / Pages 的发布方式。
 
-1.23 默认支持免付费证书的 DMG 分发。主应用不启用 App Sandbox，小组件保留沙盒；两者通过小组件自身容器中的文件共享假期、自定义日期和月份状态，不依赖 App Group。旧版 App Group 缓存由主应用迁移，迁移失败不会删除原数据。
+**顺序：升版 → 测试 → Release 构建 → DMG → Sparkle 签名 → 推送版本标签 → 上传并公开 Release → 推送 main 更新源 → 验证客户端。**
 
-打包脚本检查主应用和小组件的 `WidgetDataTransport=widgetContainer-v1`，仅对这种架构生成 ad-hoc 包，避免把 1.22 的 App Group 架构误打成无法读取数据的包。用户拖入 Applications 后，首次启动可能需要在系统设置中允许打开，并允许日历和小组件数据访问。不要求关闭 SIP、Gatekeeper 或授予完全磁盘访问权限。
+只 push 代码不会上传安装包；只上传 DMG 不会更新客户端的更新源。必须完成两部分。
 
-Developer ID 签名和公证仍可选，用于减少系统首次启动提示。Sparkle 的更新签名保持独立，继续使用原有 EdDSA 密钥。
+## 固定配置
 
-## 0. 首次发布前生成 Sparkle 密钥
+| 项目 | 当前值 |
+| --- | --- |
+| GitHub 仓库 | `akmumu/ttcalendar` |
+| 发布分支 / 标签 | `main` / 与版本号相同，例如 `1.25` |
+| GitHub Pages | `main` 分支的 `/docs` |
+| Sparkle 更新源 | `https://akmumu.github.io/ttcalendar/appcast.xml` |
+| Sparkle Keychain account | `akmumu.ttcalendar` |
+| App / Widget 版本 | 必须一起修改，Debug / Release 共四处 |
+| 系统 / 架构 | macOS 14.0+，Intel + Apple Silicon |
+| 分发方式 | ad-hoc 签名，当前没有 Developer ID 公证 |
 
-当前使用 Keychain account `akmumu.ttcalendar` 保存 Sparkle EdDSA 私钥，公钥为：
+本次版本为 **1.25 / build 25**。下面用下一版 **1.26 / build 26** 演示；每次先改这两个数字，已发布的版本号、标签和安装包不要重复使用。
 
-```text
-CednorgFOaxIy8wQb0PNbx+OhsiGsVJtB+PvgExrtbM=
-```
+## 0. 发布环境（新电脑需要准备）
 
-新电脑首次发布前，必须从当前电脑导出并导入这把私钥，不能直接生成新密钥。
-
-```sh
-Scripts/generate_sparkle_keys.sh
-```
-
-脚本会把私钥保存在 macOS Keychain 下，并更新 `SUPublicEDKey`。私钥不要提交到 Git，也不要放进 release 目录。
-
-1.22 因原私钥无法恢复，轮换到了上述新密钥。1.21 及更早版本仍信任旧公钥，因此无法通过应用内更新跨越这次轮换，必须手动安装一次 1.22。安装 1.22 后，后续版本继续使用 `akmumu.ttcalendar` 这把密钥即可恢复自动更新。
-
-旧公钥仅保留用于记录：
-
-```text
-prXVolYqRBZ2dxSMY3Ga/pF+AdwrlcCc/XetU/60R2o=
-```
-
-迁移到另一台电脑时，先在当前电脑导出：
+- 安装完整 Xcode 并接受许可；用 Xcode 打开项目，确保 Swift Package 可以解析。
+- 安装 `create-dmg`、GitHub CLI 和 Python 3：
 
 ```sh
-"$(Scripts/find_sparkle_tool.sh generate_keys)" --account akmumu.ttcalendar -x sparkle-private-key
+HOMEBREW_NO_INSTALL_CLEANUP=1 brew install create-dmg gh
+python3 --version
+xcodebuild -version
 ```
 
-然后在新电脑导入：
+`python3 Scripts/github_cli.py ...` 是本仓库的 GitHub CLI 入口：优先使用 `gh` 自己的登录；否则复用 Git 中 `github.com / akmumu` 的凭据，仅在内存中传递，不输出或保存令牌。缺少登录时执行：
 
 ```sh
-"$(Scripts/find_sparkle_tool.sh generate_keys)" --account akmumu.ttcalendar -f sparkle-private-key
+gh auth login --hostname github.com
 ```
 
-确认导入完成后安全删除导出的私钥文件。
-
-## 1. 开发测试
+现有 Sparkle 私钥必须保留在 Keychain。**常规发布不要重新生成密钥。** 核对现有公钥：
 
 ```sh
-Scripts/install_debug_widget.sh
+"$(Scripts/find_sparkle_tool.sh generate_keys)" --account akmumu.ttcalendar -p
+/usr/libexec/PlistBuddy -c 'Print :SUPublicEDKey' ttcalendar/Info.plist
 ```
 
-确认 App、本机日历同步、小组件刷新和月份切换都正常。
+两者应同为：`CednorgFOaxIy8wQb0PNbx+OhsiGsVJtB+PvgExrtbM=`。
 
-## 2. 更新版本号
+找不到 Sparkle 工具时，在 Xcode 构建一次，或设置 `SPARKLE_BIN=/实际路径/Sparkle/bin`。脚本会查找项目 `DerivedData` 和用户 Xcode DerivedData。
 
-在 Xcode 工程里同时递增：
+## 1. 同步仓库、升版、写更新说明
 
-- `MARKETING_VERSION`，例如 `1.14`
-- `CURRENT_PROJECT_VERSION`，例如 `14`
+在仓库根目录执行。先查看本地改动和远端提交，若远端有新提交，合并后再发布；不要覆盖未提交的工作。
 
-Sparkle 主要使用 build 号比较版本，所以 `CURRENT_PROJECT_VERSION` 必须递增。
+```sh
+git status --short
+git fetch origin
+git log --oneline HEAD..origin/main
 
-## 3. 构建免证书版本
+export RELEASE_VERSION=1.26
+export RELEASE_BUILD=26
+export RELEASE_OUTPUT="$PWD/build/releases/$RELEASE_VERSION"
+export RELEASE_DERIVED="$PWD/DerivedData/release-$RELEASE_VERSION"
+mkdir -p "$RELEASE_OUTPUT"
+python3 Scripts/bump_version.py "$RELEASE_VERSION" "$RELEASE_BUILD"
+```
+
+`bump_version.py` 一次修改主应用和小组件的四处版本，并拒绝不递增的版本/build。Sparkle 使用 build 比较新旧，不能只改展示版本。
+
+参考 `release-notes/1.25.html`、`release-notes/1.25.md`，为新版本创建：
+
+- `release-notes/$RELEASE_VERSION.html`：客户端更新窗口使用。
+- `release-notes/$RELEASE_VERSION.md`：GitHub Release 使用。
+
+## 2. 运行回归测试
+
+```sh
+swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Scripts/test_widget_preferences.swift -o /private/tmp/ttcalendar-storage-tests
+/private/tmp/ttcalendar-storage-tests
+
+swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Shared/DateReminder.swift Shared/CustomSpecialDate.swift ttcalendar/DateReminderPlan.swift Scripts/test_date_reminders.swift -o /private/tmp/ttcalendar-reminder-tests
+/private/tmp/ttcalendar-reminder-tests
+
+swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Shared/DateReminder.swift Shared/CustomSpecialDate.swift ttcalendar/DateReminderPlan.swift ttcalendar/DateReminderService.swift Scripts/test_reminder_service.swift -o /private/tmp/ttcalendar-service-tests
+/private/tmp/ttcalendar-service-tests
+```
+
+三组应输出 `PASS`。同时检查日期增删改、提醒选项和权限提示。日期计算/模拟通知测试不会实际发送系统通知；新通知功能还需在允许通知的环境中设置一条近未来提醒，验证关闭应用后收到，并验证关闭提醒或删除后不再发送。
+
+需要开发安装时可运行 `Scripts/install_debug_widget.sh`，但它会替换 `/Applications/抬头日历.app`。如果准备验证旧版自动升级，先保留已安装旧版，别提前用开发版替换。
+
+## 3. 构建正式配置，打包 DMG
 
 ```sh
 xcodebuild -project ttcalendar.xcodeproj -scheme ttcalendar \
   -configuration Release -destination 'generic/platform=macOS' \
-  -derivedDataPath /private/tmp/ttcalendar-release CODE_SIGNING_ALLOWED=NO build
+  -derivedDataPath "$RELEASE_DERIVED" CODE_SIGNING_ALLOWED=NO build
 
-RELEASE_DIR=/private/tmp/ttcalendar-release/Build/Products/Release Scripts/package_dmg.sh
-```
-
-也可以使用 Xcode 导出 App 后交给打包脚本。若选择付费签名路线，在 Xcode 里：
-
-在 Xcode 里：
-
-1. Product -> Archive
-2. Organizer -> Distribute App
-3. 选择 Developer ID 导出
-4. 导出后确保目录形如：
-
-```text
-/Users/didi/workspace/apple/release/抬头日历.app
-```
-
-选择 Developer ID 路线时，导出后完成 notarization 和 stapling；默认免证书路线不需要此步骤。
-
-## 4. 打包 DMG
-
-默认免证书打包（仅修改临时副本，保留原构建）：
-
-```sh
+RELEASE_DIR="$RELEASE_DERIVED/Build/Products/Release" \
+DMG_PATH="$RELEASE_OUTPUT/ttcalendar-$RELEASE_VERSION.dmg" \
 Scripts/package_dmg.sh
+
+cp "$RELEASE_OUTPUT/ttcalendar-$RELEASE_VERSION.dmg" "$RELEASE_OUTPUT/ttcalendar.dmg"
 ```
 
-脚本默认输入：
+看到 `BUILD SUCCEEDED` 和 `Created ...dmg` 才继续。打包脚本会复制构建产物后签名，不修改原始构建；App 和小组件都必须使用 `widgetContainer-v1` 数据共享方式。`generic/platform=macOS` 用于生成 Intel + Apple Silicon 通用版本。
 
-```text
-/Users/didi/workspace/apple/release/抬头日历.app
-```
+上传两个相同内容的文件：版本化文件给 Sparkle，`ttcalendar.dmg` 保持 README 的“最新版下载”链接可用。不要将 DMG 加进 Git，`build/` 已忽略。
 
-默认输出：
+若同名 DMG 已存在，先确认它尚未发布；确需重新打包时设置 `OVERWRITE_DMG=1`，之后必须重新生成签名和 appcast。已发布的 DMG 不要覆盖。
 
-```text
-/Users/didi/workspace/apple/ttcalendar.dmg
-```
-
-如果要覆盖已有 DMG：
+## 4. 检查实际打包产物
 
 ```sh
-OVERWRITE_DMG=1 Scripts/package_dmg.sh
+hdiutil attach -readonly -nobrowse -mountpoint /private/tmp/ttcalendar-release-check \
+  "$RELEASE_OUTPUT/ttcalendar-$RELEASE_VERSION.dmg"
+
+codesign --verify --deep --strict --verbose=2 '/private/tmp/ttcalendar-release-check/抬头日历.app'
+/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' '/private/tmp/ttcalendar-release-check/抬头日历.app/Contents/Info.plist'
+/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' '/private/tmp/ttcalendar-release-check/抬头日历.app/Contents/Info.plist'
+/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' '/private/tmp/ttcalendar-release-check/抬头日历.app/Contents/PlugIns/CalendarWidgetExtension.appex/Contents/Info.plist'
+lipo -archs '/private/tmp/ttcalendar-release-check/抬头日历.app/Contents/MacOS/抬头日历'
+
+hdiutil detach /private/tmp/ttcalendar-release-check
 ```
 
-发布前必须实际验证已打包安装的桌面小组件能显示 Apple 日历的休假及调休标记。仅通过编译、主应用预览或 Sparkle 签名校验不代表小组件具备共享容器访问权限。
+App/Widget build 必须一致，架构应包含 `x86_64 arm64`。签名检查通过代表包完整，不代表 Developer ID 公证通过。
 
-## 5. 可选：Developer ID notarized 发布
+在测试机/测试账号安装 DMG，检查桌面小组件实际显示休假、调休、自定义日期与月份切换。主应用预览通过不能替代真实小组件验证。已有 1.24 安装可留到第 8 步做升级验证。
 
-如果有付费 Apple Developer Program，并且要做正式外部分发，第一次使用前先把 Apple notarization 凭据保存到 Keychain。`APPLE_ID` 使用 Apple Developer 账号邮箱，`TEAM_ID` 使用开发者团队 ID，密码使用 Apple ID 的 app-specific password：
+## 5. 生成并校验 Sparkle 更新源
+
+在独立目录生成，避免混入旧 DMG。继续使用原有 Keychain 私钥，不导出私钥：
 
 ```sh
-xcrun notarytool store-credentials ttcalendar-notary --apple-id APPLE_ID --team-id TEAM_ID
-```
-
-之后每次发布，在打包 DMG 前执行：
-
-```sh
-Scripts/notarize_app.sh
-```
-
-完成后用严格检查打包：
-
-```sh
-STRICT_RELEASE_CHECKS=1 Scripts/package_dmg.sh
-```
-
-如果看到 `does not have a ticket stapled to it`，说明还没有执行 notarization，或者 notarization 成功后没有 staple。
-
-如果看到 `CSSMERR_TP_NOT_TRUSTED` 或 `Authority=(unavailable)`，说明当前导出的 App 签名链不可信，需要重新用有效的 Developer ID Application 证书导出。
-
-## 6. 创建 GitHub Release
-
-在 GitHub 仓库 `akmumu/ttcalendar` 创建 tag，例如：
-
-```text
-1.14
-```
-
-上传 DMG：
-
-```text
-ttcalendar.dmg
-```
-
-## 7. 生成 Sparkle appcast
-
-可选：先写发布说明，文件名按版本号放：
-
-```text
-release-notes/1.14.html
-```
-
-然后生成 appcast：
-
-```sh
+APPCAST_DIR="$RELEASE_OUTPUT/feed" \
+DMG_PATH="$RELEASE_OUTPUT/ttcalendar-$RELEASE_VERSION.dmg" \
 Scripts/update_appcast.sh
+
+cp "$RELEASE_OUTPUT/feed/appcast.xml" docs/appcast.xml
+cp "$RELEASE_OUTPUT/feed/ttcalendar-$RELEASE_VERSION.html" "docs/ttcalendar-$RELEASE_VERSION.html"
+cat docs/appcast.xml
 ```
 
-脚本默认会：
+检查：`sparkle:version` = build，`shortVersionString` = 版本，下载地址指向该 tag 下的版本化 DMG；说明链接指向 GitHub Pages 的同名 HTML。脚本已自动设置两类地址前缀。
 
-- 从 `/Users/didi/workspace/apple/ttcalendar.dmg` 读取 DMG
-- 用 Keychain 里的 `akmumu.ttcalendar` 私钥签名
-- 生成或更新 `docs/appcast.xml`
-- 默认下载地址前缀为 `https://github.com/akmumu/ttcalendar/releases/download/版本号/`
-
-如果 tag 或 DMG 地址不同：
+使用客户端公钥校验安装包签名与长度（不需要读取私钥或 Keychain）：
 
 ```sh
-RELEASE_TAG=1.14 Scripts/update_appcast.sh
+python3 - <<'PY'
+import os, plistlib, subprocess, xml.etree.ElementTree as ET
+from pathlib import Path
+ns = {'s': 'http://www.andymatuschak.org/xml-namespaces/sparkle'}
+item = ET.parse('docs/appcast.xml').find('./channel/item')
+assert item.findtext('s:version', namespaces=ns) == os.environ['RELEASE_BUILD']
+assert item.findtext('s:shortVersionString', namespaces=ns) == os.environ['RELEASE_VERSION']
+enclosure = item.find('enclosure')
+dmg = Path(os.environ['RELEASE_OUTPUT']) / ('ttcalendar-' + os.environ['RELEASE_VERSION'] + '.dmg')
+assert int(enclosure.attrib['length']) == dmg.stat().st_size
+public_key = plistlib.loads(Path('ttcalendar/Info.plist').read_bytes())['SUPublicEDKey']
+subprocess.run(['swift', '-module-cache-path', '/private/tmp/ttcalendar-tests-cache', 'Scripts/verify_update.swift', str(dmg), enclosure.attrib['{' + ns['s'] + '}edSignature'], public_key], check=True)
+print('PASS: build, version, size, Sparkle signature')
+PY
 ```
 
-也可以直接覆盖完整下载前缀，注意结尾 `/` 可省略，脚本会自动补上：
+## 6. 提交并推送标签，上传 Release
+
+先用 `git diff` 审核。`git add -u` 只暂存已跟踪文件，新源码/脚本需按 `git status` 列出的路径显式添加，不要漏文件。
 
 ```sh
-DOWNLOAD_URL_PREFIX=https://github.com/akmumu/ttcalendar/releases/download/1.14 Scripts/update_appcast.sh
+git diff --check
+git diff --stat
+git status --short
+git add -u
+git add "release-notes/$RELEASE_VERSION.html" "release-notes/$RELEASE_VERSION.md" "docs/ttcalendar-$RELEASE_VERSION.html"
+# 在这里 git add 本次新增的源码和脚本文件；确认没有私钥、令牌或 DMG。
+git diff --cached --stat
+git commit -m "发布 $RELEASE_VERSION"
+git tag "$RELEASE_VERSION"
+git push origin "$RELEASE_VERSION"
+
+python3 Scripts/github_cli.py release create "$RELEASE_VERSION" \
+  "$RELEASE_OUTPUT/ttcalendar-$RELEASE_VERSION.dmg" "$RELEASE_OUTPUT/ttcalendar.dmg" \
+  --repo akmumu/ttcalendar --verify-tag --draft \
+  --title "抬头日历 $RELEASE_VERSION" --notes-file "release-notes/$RELEASE_VERSION.md"
+
+python3 Scripts/github_cli.py release view "$RELEASE_VERSION" --repo akmumu/ttcalendar --json tagName,isDraft,assets,url
+python3 Scripts/github_cli.py release edit "$RELEASE_VERSION" --repo akmumu/ttcalendar --draft=false --latest
 ```
 
-## 8. 发布 GitHub Pages
+这里先只推标签；main 仍保留旧 appcast。确认两个资产都上传完整后才公开 Release。
 
-把仓库推到 GitHub，并开启 GitHub Pages：
+## 7. 确认下载包，然后发布客户端更新源
 
-- Source: `Deploy from a branch`
-- Branch: `main`
-- Folder: `/docs`
+```sh
+mkdir -p "$RELEASE_OUTPUT/download-check"
+python3 Scripts/github_cli.py release download "$RELEASE_VERSION" --repo akmumu/ttcalendar \
+  --pattern "ttcalendar-$RELEASE_VERSION.dmg" --dir "$RELEASE_OUTPUT/download-check"
+cmp "$RELEASE_OUTPUT/ttcalendar-$RELEASE_VERSION.dmg" "$RELEASE_OUTPUT/download-check/ttcalendar-$RELEASE_VERSION.dmg"
 
-确认这个地址能访问：
-
-```text
-https://akmumu.github.io/ttcalendar/appcast.xml
+git push origin main
+python3 Scripts/github_cli.py run list --repo akmumu/ttcalendar --limit 5
 ```
 
-这个地址必须和 `ttcalendar/Info.plist` 里的 `SUFeedURL` 一致。
+`cmp` 无输出且成功表示上传内容一致。main 推送会触发 Pages 发布；用上一步输出的运行 ID 等待：
 
-## 9. 更新测试
-
-最可靠的测试方式：
-
-1. 安装旧版本，例如 build `13`
-2. 发布新版本，例如 build `14`
-3. 打开旧版本，点击“检查更新”
-4. 确认 Sparkle 能看到新版本、下载 DMG、完成替换
-
-如果检查不到更新，优先检查：
-
-- `docs/appcast.xml` 是否已经发布到 GitHub Pages
-- GitHub Release asset 的下载地址是否能直接访问
-- `sparkle:version` 是否大于本地 `CFBundleVersion`
-- `SUPublicEDKey` 是否和 Keychain 里的私钥匹配
-
-如果下载进度完成后才报“更新错误”，优先检查 sandbox + Sparkle 的安装通信配置。主 App 的 entitlements 必须包含：
-
-```xml
-<key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
-<array>
-    <string>$(PRODUCT_BUNDLE_IDENTIFIER)-spks</string>
-    <string>$(PRODUCT_BUNDLE_IDENTIFIER)-spki</string>
-</array>
+```sh
+python3 Scripts/github_cli.py run watch 运行ID --repo akmumu/ttcalendar --exit-status
+curl -fsSL https://akmumu.github.io/ttcalendar/appcast.xml
+curl -fsSL "https://akmumu.github.io/ttcalendar/ttcalendar-$RELEASE_VERSION.html"
 ```
 
-缺少这两个临时例外时，sandbox 内的 App 可以下载更新，但可能无法和 Sparkle installer 工具完成安装通信。已经发布且缺少这两个 entitlements 的旧版本，通常无法靠 appcast 修复，需要用户手动下载新 DMG 覆盖安装一次。
+线上 appcast 必须出现新 build、正确地址和签名。Pages/CDN 有延迟时稍后重试，不要仅凭本地 XML 判断已发布。正常情况下无须修改 Pages 设置；应保持 `main /docs`。
+
+## 8. 从旧版完整验证更新
+
+在已安装旧版中点击“检查更新”，确认：
+
+1. 能看到新版本及正确更新说明。
+2. 能下载并安装，重新启动后显示新版本。
+3. 原有自定义日期仍在，桌面小组件的班/休标记、月份切换正常。
+4. 新增提醒可以授权、发送、修改和取消。
+
+记录区分“签名/链接校验”“主应用升级成功”“桌面小组件验证”“实际通知送达”，不要把其中一项通过当作全部通过。
+
+## 故障处理
+
+| 现象 | 处理 |
+| --- | --- |
+| 找不到 `gh` / `create-dmg` | 回到第 0 步安装工具 |
+| Git 可 push、gh 提示未登录 | 使用 `python3 Scripts/github_cli.py ...` 复用 Git 凭据，或 `gh auth login` |
+| Keychain 找不到 Sparkle 密钥 | 从原电脑迁移原密钥；不要临时生成新密钥 |
+| 客户端查不到新版 | 核对线上 appcast、Pages 成功状态和新 build 大于本机 build |
+| 下载 404 | 核对 Release 已公开、tag 和资产文件名完全匹配 |
+| 下载后签名失败 | 比较上传包与本地包；签名后是否又重新打包；是否用错密钥 |
+| 更新说明 404 | 核对 `docs/ttcalendar-版本.html` 已提交，链接前缀为 GitHub Pages |
+| 发布后发现问题 | 保留已发布包不变，修复后递增 build 发布下一版；必要时先恢复旧 appcast 停止继续推荐问题版 |
+| 上传成功但 main push 失败 | 修复 push/合并问题后重试 main；不要再创建相同 Release |
+| 小组件不刷新 | 打开主应用刷新，检查读取数据权限和重复注册；必要时移除后重新添加小组件 |
+
+1.22 轮换过 Sparkle 密钥，1.21 及更早客户端必须手动安装一次新版；1.22 及以后继续使用现有密钥可更新。恢复旧 appcast 不会自动降级已更新客户端。
+
+## 可选：Developer ID 签名与公证
+
+当前流程不要求付费证书。若后续改为 Developer ID：用 Xcode Archive 导出 Developer ID Application 签名 App，运行 `Scripts/notarize_app.sh` 完成公证和 stapling，再用 `STRICT_RELEASE_CHECKS=1` 和明确的 `RELEASE_DIR` 打包。不要把关闭系统安全检查作为发布步骤。
+
+## 换电脑：迁移 Sparkle 密钥
+
+仅换电脑时，在可信的本地目录导出并安全传输，文件绝不能提交到 Git 或上传到 Release：
+
+```sh
+"$(Scripts/find_sparkle_tool.sh generate_keys)" --account akmumu.ttcalendar -x sparkle-private-key
+# 在新电脑上：
+"$(Scripts/find_sparkle_tool.sh generate_keys)" --account akmumu.ttcalendar -f sparkle-private-key
+```
+
+导入后用 `-p` 核对公钥，再安全移除临时私钥文件。常规发布只读取 Keychain，不需要导出。
+
+参考：[Sparkle 官方发布说明](https://sparkle-project.org/documentation/publishing/)。

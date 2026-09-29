@@ -26,6 +26,7 @@ fi
 
 RELEASE_TAG="${RELEASE_TAG:-${marketing_version}}"
 DOWNLOAD_URL_PREFIX="${DOWNLOAD_URL_PREFIX:-https://github.com/akmumu/ttcalendar/releases/download/${RELEASE_TAG}/}"
+RELEASE_NOTES_URL_PREFIX="${RELEASE_NOTES_URL_PREFIX:-https://akmumu.github.io/ttcalendar/}"
 if [[ "${DOWNLOAD_URL_PREFIX}" != */ ]]; then
   DOWNLOAD_URL_PREFIX="${DOWNLOAD_URL_PREFIX}/"
 fi
@@ -48,6 +49,7 @@ echo "Keychain account: ${KEY_ACCOUNT}"
 "${GENERATE_APPCAST}" \
   --account "${KEY_ACCOUNT}" \
   --download-url-prefix "${DOWNLOAD_URL_PREFIX}" \
+  --release-notes-url-prefix "${RELEASE_NOTES_URL_PREFIX}" \
   --maximum-versions "${MAXIMUM_VERSIONS}" \
   --maximum-deltas "${MAXIMUM_DELTAS}" \
   "${APPCAST_DIR}"
