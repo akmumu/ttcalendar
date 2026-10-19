@@ -722,6 +722,9 @@ struct DayMarker: Hashable {
         [8, 1]: DayMarker(name: "建军节", isFestival: false),
         [9, 10]: DayMarker(name: "教师节", isFestival: false),
         [10, 1]: DayMarker(name: "国庆节", isFestival: true),
+        [10, 24]: DayMarker(name: "程序员节", isFestival: false),
+        [10, 31]: DayMarker(name: "万圣节", isFestival: false),
+        [11, 11]: DayMarker(name: "光棍节", isFestival: false),
         [12, 24]: DayMarker(name: "平安夜", isFestival: false),
         [12, 25]: DayMarker(name: "圣诞节", isFestival: false)
     ]
@@ -733,12 +736,12 @@ struct DayMarker: Hashable {
         [7, 7]: DayMarker(name: "七夕", isFestival: false),
         [8, 15]: DayMarker(name: "中秋", isFestival: true),
         [9, 9]: DayMarker(name: "重阳", isFestival: false),
-        [12, 8]: DayMarker(name: "腊八", isFestival: false),
+        [12, 8]: DayMarker(name: "腊八节", isFestival: false),
         [12, 23]: DayMarker(name: "小年", isFestival: false)
     ]
 
     private static func floatingSolarFestival(month: Int, day: Int, calendar: Calendar, date: Date) -> DayMarker? {
-        guard month == 5 || month == 6 else {
+        guard month == 5 || month == 6 || month == 11 else {
             return nil
         }
 
@@ -751,6 +754,11 @@ struct DayMarker: Hashable {
 
         if month == 6, weekday == 1, weekdayOrdinal == 3 {
             return DayMarker(name: "父亲节", isFestival: false)
+        }
+
+        // Thanksgiving falls on the fourth Thursday, not a fixed November date.
+        if month == 11, weekday == 5, weekdayOrdinal == 4 {
+            return DayMarker(name: "感恩节", isFestival: false)
         }
 
         return nil

@@ -107,6 +107,17 @@ Scripts/generate_sparkle_keys.sh
 
 抬头日历会优先读取本机 Apple 日历中的节假日数据，并结合内置农历、节日和节气逻辑生成小组件内容。如果没有授予日历权限，应用仍可显示内置数据，但调休和休班信息可能不如系统节假日日历完整。
 
+内置节日包含程序员节（10 月 24 日）、万圣节（按 10 月 31 日活动日期显示）、光棍节（11 月 11 日）、感恩节（11 月第四个星期四，2026 年为 11 月 26 日）、圣诞节（12 月 25 日）和腊八节（农历腊月初八，不含闰月）。这些节日不会额外标记为法定休假日。
+
+节日日期回归测试：
+
+```sh
+swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Shared/DateReminder.swift Shared/CustomSpecialDate.swift Shared/CalendarContent.swift Scripts/test_festivals.swift -o /private/tmp/ttcalendar-festival-tests
+/private/tmp/ttcalendar-festival-tests
+```
+
+如果桌面小组件一直停留在灰色占位画面，可先在主应用中刷新小组件。若仍无变化，在终端运行 `killall chronod NotificationCenter` 重启系统小组件宿主；这不会删除自定义日期或桌面小组件布局。
+
 ## 日期通知提醒
 
 在“添加日期”或“编辑特殊日期”的“提醒”区域开启“通知提醒”，设置提前天数和时间后保存。通知由 macOS 安排，应用无需保持运行；编辑、删除日期或关闭提醒时会同步更新通知。系统通知权限被拒绝时，日期和提醒偏好仍会保存，界面会提示打开通知设置；允许后回到应用即可重新安排。通知的实际展示受系统通知设置和专注模式影响。

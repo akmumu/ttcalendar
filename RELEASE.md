@@ -11,7 +11,7 @@
 | 项目 | 当前值 |
 | --- | --- |
 | GitHub 仓库 | `akmumu/ttcalendar` |
-| 发布分支 / 标签 | `main` / 与版本号相同，例如 `1.25` |
+| 发布分支 / 标签 | `main` / 与版本号相同，例如 `1.26` |
 | GitHub Pages | `main` 分支的 `/docs` |
 | Sparkle 更新源 | `https://akmumu.github.io/ttcalendar/appcast.xml` |
 | Sparkle Keychain account | `akmumu.ttcalendar` |
@@ -19,9 +19,9 @@
 | 系统 / 架构 | macOS 14.0+，Intel + Apple Silicon |
 | 分发方式 | ad-hoc 签名，当前没有 Developer ID 公证 |
 
-本次版本为 **1.25 / build 25**。下面用下一版 **1.26 / build 26** 演示；每次先改这两个数字，已发布的版本号、标签和安装包不要重复使用。
+本次版本为 **1.26 / build 26**。下面用下一版 **1.27 / build 27** 演示；每次先改这两个数字，已发布的版本号、标签和安装包不要重复使用。
 
-本次执行结果见 [1.25 发布验证记录](release-notes/1.25-validation.md)，包含真实客户端升级结果、安装包哈希及尚未完成的通知送达验证。
+本次执行结果见 [1.26 发布验证记录](release-notes/1.26-validation.md)，记录构建、签名、上传完整性、线上更新源及客户端验证结果。
 
 ## 0. 发布环境（新电脑需要准备）
 
@@ -60,8 +60,8 @@ git status --short
 git fetch origin
 git log --oneline HEAD..origin/main
 
-export RELEASE_VERSION=1.26
-export RELEASE_BUILD=26
+export RELEASE_VERSION=1.27
+export RELEASE_BUILD=27
 export RELEASE_OUTPUT="$PWD/build/releases/$RELEASE_VERSION"
 export RELEASE_DERIVED="$PWD/DerivedData/release-$RELEASE_VERSION"
 mkdir -p "$RELEASE_OUTPUT"
@@ -70,7 +70,7 @@ python3 Scripts/bump_version.py "$RELEASE_VERSION" "$RELEASE_BUILD"
 
 `bump_version.py` 一次修改主应用和小组件的四处版本，并拒绝不递增的版本/build。Sparkle 使用 build 比较新旧，不能只改展示版本。
 
-参考 `release-notes/1.25.html`、`release-notes/1.25.md`，为新版本创建：
+参考 `release-notes/1.26.html`、`release-notes/1.26.md`，为新版本创建：
 
 - `release-notes/$RELEASE_VERSION.html`：客户端更新窗口使用。
 - `release-notes/$RELEASE_VERSION.md`：GitHub Release 使用。
@@ -86,9 +86,12 @@ swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPrefe
 
 swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Shared/DateReminder.swift Shared/CustomSpecialDate.swift ttcalendar/DateReminderPlan.swift ttcalendar/DateReminderService.swift Scripts/test_reminder_service.swift -o /private/tmp/ttcalendar-service-tests
 /private/tmp/ttcalendar-service-tests
+
+swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Shared/DateReminder.swift Shared/CustomSpecialDate.swift Shared/CalendarContent.swift Scripts/test_festivals.swift -o /private/tmp/ttcalendar-festival-tests
+/private/tmp/ttcalendar-festival-tests
 ```
 
-三组应输出 `PASS`。同时检查日期增删改、提醒选项和权限提示。日期计算/模拟通知测试不会实际发送系统通知；新通知功能还需在允许通知的环境中设置一条近未来提醒，验证关闭应用后收到，并验证关闭提醒或删除后不再发送。
+四组应输出 `PASS`。同时检查日期增删改、提醒选项和权限提示。日期计算/模拟通知测试不会实际发送系统通知；新通知功能还需在允许通知的环境中设置一条近未来提醒，验证关闭应用后收到，并验证关闭提醒或删除后不再发送。
 
 需要开发安装时可运行 `Scripts/install_debug_widget.sh`，但它会替换 `/Applications/抬头日历.app`。如果准备验证旧版自动升级，先保留已安装旧版，别提前用开发版替换。
 
@@ -129,7 +132,7 @@ hdiutil detach /private/tmp/ttcalendar-release-check
 
 App/Widget build 必须一致，架构应包含 `x86_64 arm64`。签名检查通过代表包完整，不代表 Developer ID 公证通过。
 
-在测试机/测试账号安装 DMG，检查桌面小组件实际显示休假、调休、自定义日期与月份切换。主应用预览通过不能替代真实小组件验证。已有 1.24 安装可留到第 8 步做升级验证。
+在测试机/测试账号安装 DMG，检查桌面小组件实际显示休假、调休、自定义日期与月份切换。主应用预览通过不能替代真实小组件验证。已有 1.25 安装可留到第 8 步做升级验证。
 
 ## 5. 生成并校验 Sparkle 更新源
 
