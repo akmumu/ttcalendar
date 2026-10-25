@@ -43,7 +43,10 @@ struct Provider: TimelineProvider {
             return makeEntry(date: refreshDate, family: context.family)
         }
 
-        completion(Timeline(entries: entries, policy: .atEnd))
+        // Keep future day entries for delayed reloads, but request fresh data
+        // hourly rather than waiting until the eight-day timeline is exhausted.
+        // WidgetKit chooses the actual reload time; this is not a deadline.
+        completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(60 * 60))))
     }
 
     private func makeEntry(date: Date, family: WidgetFamily) -> SimpleEntry {
@@ -63,8 +66,7 @@ struct Provider: TimelineProvider {
             nextFestival: highlights.nextFestival,
             nextSolarTerm: highlights.nextSolarTerm,
             nextCustomSpecialDay: highlights.nextCustomSpecialDay,
-            monthOffset: WidgetMonthNavigation.currentOffset,
-            refreshToken: CalendarEventCache.refreshToken
+            monthOffset: WidgetMonthNavigation.currentOffset
         )
     }
 
@@ -88,7 +90,6 @@ struct SimpleEntry: TimelineEntry {
     let nextSolarTerm: NextSpecialDay?
     let nextCustomSpecialDay: NextSpecialDay?
     let monthOffset: Int
-    let refreshToken: Double
 }
 
 struct CalendarWidgetEntryView: View {
@@ -106,7 +107,7 @@ struct CalendarWidgetEntryView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 12)
-        .id(entry.refreshToken)
+        .id(entry.date)
     }
 
     private var largeBody: some View {

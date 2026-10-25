@@ -533,7 +533,7 @@ enum CalendarEventCache {
         return HolidayAnnotation(displayName: displayTitle(from: events, preferredEvent: event), badgeText: event.badgeText)
     }
 
-    static func save(_ events: [CachedCalendarEvent]) {
+    static func save(_ events: [CachedCalendarEvent], preferences: WidgetPreferences = .shared) {
         var grouped: [String: [CachedCalendarEvent]] = [:]
 
         for event in events {
@@ -547,14 +547,16 @@ enum CalendarEventCache {
             return
         }
 
-        userDefaults.set(data, forKey: cacheKey)
-        updateRefreshToken()
+        // Preserve the data-write error instead of clearing it with a successful
+        // auxiliary token write, which would falsely report a successful sync.
+        guard preferences.set(data, forKey: cacheKey) else { return }
+        updateRefreshToken(preferences: preferences)
     }
 
     @discardableResult
-    static func updateRefreshToken() -> Double {
+    static func updateRefreshToken(preferences: WidgetPreferences = .shared) -> Double {
         let token = Date().timeIntervalSinceReferenceDate
-        userDefaults.set(token, forKey: refreshTokenKey)
+        preferences.set(token, forKey: refreshTokenKey)
         return token
     }
 

@@ -114,9 +114,16 @@ Scripts/generate_sparkle_keys.sh
 ```sh
 swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Shared/DateReminder.swift Shared/CustomSpecialDate.swift Shared/CalendarContent.swift Scripts/test_festivals.swift -o /private/tmp/ttcalendar-festival-tests
 /private/tmp/ttcalendar-festival-tests
+
+swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Shared/DateReminder.swift Shared/CustomSpecialDate.swift Shared/CalendarContent.swift Scripts/test_calendar_cache.swift -o /private/tmp/ttcalendar-cache-tests
+/private/tmp/ttcalendar-cache-tests
 ```
 
-如果桌面小组件一直停留在灰色占位画面，可先在主应用中刷新小组件。若仍无变化，在终端运行 `killall chronod NotificationCenter` 重启系统小组件宿主；这不会删除自定义日期或桌面小组件布局。
+内置节日由小组件自身计算，不需要 Apple 日历权限。主应用的“刷新桌面小组件”只请求系统重新加载，不需要写入小组件数据目录，也不表示内容已立即刷新。小组件保留未来 8 天的日历条目，并请求系统每小时重新生成时间线；实际执行时间由 macOS 安排，可能延后。
+
+如果更新应用后仍显示旧内容，可先在主应用中刷新，再点击小组件上的“回到本月”；仍未恢复可移除后重新添加。同步 Apple 日历或保存自定义日期需要写入小组件数据，写入失败与刷新请求是两回事，应根据具体错误排查。不要仅凭写入错误就认定缺少日历授权。
+
+如果桌面小组件一直停留在灰色占位画面，刷新后仍无变化，可在终端运行 `killall chronod NotificationCenter` 重启系统小组件宿主；这不会删除自定义日期或桌面小组件布局。
 
 ## 日期通知提醒
 

@@ -39,8 +39,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-private enum AppInstallRefreshCoordinator {
+enum AppInstallRefreshCoordinator {
     private static let lastOpenedBuildKey = "lastOpenedBuild"
+    private static var pendingReloads: [DispatchWorkItem] = []
 
     static func refreshOnLaunch() {
         let currentBuild = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""
@@ -55,19 +56,22 @@ private enum AppInstallRefreshCoordinator {
     }
 
     static func reloadWidgetsRepeatedly() {
+        pendingReloads.forEach { $0.cancel() }
+        pendingReloads.removeAll()
         reloadWidgets()
 
         for delay in [1.5, 5.0, 12.0] {
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            let work = DispatchWorkItem {
                 reloadWidgets()
             }
+            pendingReloads.append(work)
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
         }
     }
 
     private static func reloadWidgets() {
-        CalendarEventCache.updateRefreshToken()
+        // Requesting a timeline does not require access to the widget's files.
         WidgetCenter.shared.reloadTimelines(ofKind: CalendarWidgetIdentity.kind)
-        WidgetCenter.shared.reloadAllTimelines()
     }
 }
 

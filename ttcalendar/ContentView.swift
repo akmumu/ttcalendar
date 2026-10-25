@@ -575,7 +575,7 @@ struct ContentView: View {
             refreshPreview()
             isRefreshingCalendar = false
             holidayCalendarMessage = granted
-                ? (WidgetPreferences.shared.lastWriteError != nil ? "无法写入小组件数据，请允许访问小组件数据后重试" : (holidayCalendarNames.isEmpty ? "还没检测到节假日日历" : "已刷新节假日数据"))
+                ? (widgetDataWriteMessage ?? (holidayCalendarNames.isEmpty ? "还没检测到节假日日历" : "已刷新节假日数据"))
                 : "未获得日历权限"
         }
     }
@@ -590,19 +590,20 @@ struct ContentView: View {
             refreshPreview()
             isRefreshingCalendar = false
             calendarMessage = granted
-                ? (WidgetPreferences.shared.lastWriteError != nil ? "无法写入小组件数据，请允许访问小组件数据后重试" : "已刷新小组件数据")
+                ? (widgetDataWriteMessage ?? "已刷新小组件数据")
                 : "未获得日历权限"
         }
     }
 
     private func forceReloadWidgets() {
-        CalendarEventCache.updateRefreshToken()
-        WidgetCenter.shared.reloadTimelines(ofKind: CalendarWidgetIdentity.kind)
-        WidgetCenter.shared.reloadAllTimelines()
-        widgetRefreshMessage = WidgetPreferences.shared.lastWriteError != nil
-            ? "无法写入小组件数据，请允许访问小组件数据后重试"
-            : "已请求刷新，稍候片刻生效。"
+        AppInstallRefreshCoordinator.reloadWidgetsRepeatedly()
+        widgetRefreshMessage = "已请求系统重新加载小组件，显示时间由 macOS 安排。若仍是旧内容，请点击小组件的“回到本月”，或移除后重新添加。"
         refreshPreview()
+    }
+
+    private var widgetDataWriteMessage: String? {
+        guard let error = WidgetPreferences.shared.lastWriteError else { return nil }
+        return "节假日数据未能写入小组件：\(error)。内置节日无需日历授权。"
     }
 
     private func openGitHubRepository() {
