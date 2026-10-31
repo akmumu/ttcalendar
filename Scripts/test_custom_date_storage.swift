@@ -35,6 +35,27 @@ struct CustomDateStorageTests {
         let afterDeniedRead = try Data(contentsOf: file)
         precondition(afterDeniedRead == saved, "Read failures must preserve the original file")
 
+        let suite = "ttcalendar-folder-tests-" + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let wrongFolder = root.appendingPathComponent("other/widget")
+        try FileManager.default.createDirectory(at: wrongFolder, withIntermediateDirectories: true)
+        expectFailure { _ = try WidgetFolderAccess.authorize(wrongFolder, preferences: preferences, defaults: defaults) }
+        expectFailure { _ = try WidgetFolderAccess.authorize(wrongFolder, preferences: WidgetPreferences(directory: wrongFolder), defaults: defaults) }
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: file.path)
+        do {
+            _ = try WidgetFolderAccess.authorize(directory, preferences: preferences, defaults: defaults)
+            preconditionFailure("Do not accept an unreadable folder")
+        } catch {
+            precondition(WidgetFolderAccess.isPermissionError(error))
+        }
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: file.path)
+        _ = try WidgetFolderAccess.authorize(directory, preferences: preferences, defaults: defaults)
+        WidgetFolderAccess.restore(directory: directory, defaults: defaults)
+        let dataAfterGrant = try Data(contentsOf: file)
+        precondition(dataAfterGrant == saved)
+        precondition(!WidgetFolderAccess.isPermissionError(CocoaError(.propertyListReadCorrupt)))
+
         // Both invalid wrappers and undecodable date records must be reported.
         for damaged in [Data("broken plist".utf8),
                         try PropertyListSerialization.data(fromPropertyList: ["value": "wrong type"], format: .binary, options: 0),

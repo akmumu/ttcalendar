@@ -24,6 +24,8 @@ struct CustomDateManagementView: View {
     @State private var editingDate: CustomSpecialDate?
     @State private var selectedList: DateList = .upcoming
     @State private var loadError: String?
+    @State private var needsFolderAccess = false
+    @State private var folderAccessMessage: String?
     @State private var operationError: String?
     @ObservedObject private var reminders = DateReminderService.shared
 
@@ -62,6 +64,12 @@ struct CustomDateManagementView: View {
         .onReceive(NotificationCenter.default.publisher(for: CustomSpecialDateStore.didChangeNotification)) { _ in
             loadDates()
         }
+        .alert("日期文件夹授权", isPresented: Binding(
+            get: { folderAccessMessage != nil },
+            set: { if !$0 { folderAccessMessage = nil } }
+        )) {
+            Button("好", role: .cancel) {}
+        } message: { Text(folderAccessMessage ?? "") }
         .alert("未能删除日期", isPresented: Binding(
             get: { operationError != nil },
             set: { if !$0 { operationError = nil } }
@@ -96,6 +104,13 @@ struct CustomDateManagementView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .textSelection(.enabled)
+                if needsFolderAccess {
+                    Button("授权日期文件夹…") { chooseDateFolder() }
+                    Text("在选择框中确认 ttcalendar 文件夹。如果没有定位到该目录，可按 ⇧⌘G 粘贴下面的路径。")
+                        .font(.caption)
+                    Text((WidgetPreferences.storageDirectory.path as NSString).abbreviatingWithTildeInPath)
+                        .font(.caption).textSelection(.enabled)
+                }
                 Button("重新读取") { loadDates() }
             }
             .fixedSize(horizontal: false, vertical: true)
@@ -328,11 +343,35 @@ struct CustomDateManagementView: View {
         }
     }
 
+    private func chooseDateFolder() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.canCreateDirectories = false
+        panel.directoryURL = WidgetPreferences.storageDirectory
+        panel.prompt = "授权此文件夹"
+        panel.message = "请选择抬头日历小组件保存日期的 ttcalendar 文件夹。"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            let warning = try WidgetFolderAccess.authorize(url)
+            folderAccessMessage = warning
+            NotificationCenter.default.post(name: CustomSpecialDateStore.didChangeNotification, object: nil)
+            reminders.refresh()
+            onDatesChanged?()
+        } catch {
+            folderAccessMessage = error.localizedDescription
+        }
+        loadDates()
+    }
+
     private func loadDates() {
         do {
             customDates = try CustomSpecialDateStore.loadChecked()
+            needsFolderAccess = false
             loadError = nil
         } catch {
+            needsFolderAccess = WidgetFolderAccess.isPermissionError(error)
             loadError = error.localizedDescription
         }
     }

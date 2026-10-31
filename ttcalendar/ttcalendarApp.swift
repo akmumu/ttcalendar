@@ -80,6 +80,10 @@ struct ttcalendarApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var updaterViewModel = UpdaterViewModel()
 
+    init() {
+        WidgetFolderAccess.restore()
+    }
+
     var body: some Scene {
         WindowGroup("抬头日历") {
             ContentView()

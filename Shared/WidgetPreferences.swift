@@ -6,7 +6,7 @@ import os
 final class WidgetPreferences {
     static let extensionIdentifier = "akmumu.ttcalendar.CalendarWidget"
     static let shared = WidgetPreferences(directory: storageDirectory)
-    private let directory: URL
+    let directory: URL
     private(set) var lastWriteError: String?
     private let logger = Logger(subsystem: "akmumu.ttcalendar", category: "WidgetStorage")
 
@@ -14,7 +14,7 @@ final class WidgetPreferences {
         self.directory = directory
     }
 
-    private static var storageDirectory: URL {
+    static var storageDirectory: URL {
         let manager = FileManager.default
         if Bundle.main.bundleIdentifier == extensionIdentifier {
             return manager.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]

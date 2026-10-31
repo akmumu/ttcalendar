@@ -19,9 +19,9 @@
 | 系统 / 架构 | macOS 14.0+，Intel + Apple Silicon |
 | 分发方式 | ad-hoc 签名，当前没有 Developer ID 公证 |
 
-本次版本为 **1.29 / build 29**。下面用下一版 **1.30 / build 30** 演示；每次先改这两个数字，已发布的版本号、标签和安装包不要重复使用。
+本次版本为 **1.30 / build 30**。下面用下一版 **1.31 / build 31** 演示；每次先改这两个数字，已发布的版本号、标签和安装包不要重复使用。
 
-本次执行结果见 [1.29 发布验证记录](release-notes/1.29-validation.md)，记录构建、签名、上传完整性、线上更新源及客户端验证结果。
+本次执行结果见 [1.30 发布验证记录](release-notes/1.30-validation.md)，记录构建、签名、上传完整性、线上更新源及客户端验证结果。
 
 ## 0. 发布环境（新电脑需要准备）
 
@@ -60,8 +60,8 @@ git status --short
 git fetch origin
 git log --oneline HEAD..origin/main
 
-export RELEASE_VERSION=1.30
-export RELEASE_BUILD=30
+export RELEASE_VERSION=1.31
+export RELEASE_BUILD=31
 export RELEASE_OUTPUT="$PWD/build/releases/$RELEASE_VERSION"
 export RELEASE_DERIVED="$PWD/DerivedData/release-$RELEASE_VERSION"
 mkdir -p "$RELEASE_OUTPUT"
@@ -81,7 +81,7 @@ python3 Scripts/bump_version.py "$RELEASE_VERSION" "$RELEASE_BUILD"
 swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Scripts/test_widget_preferences.swift -o /private/tmp/ttcalendar-storage-tests
 /private/tmp/ttcalendar-storage-tests
 
-swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Shared/DateReminder.swift Shared/CustomSpecialDate.swift Scripts/test_custom_date_storage.swift -o /private/tmp/ttcalendar-custom-storage-tests
+swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Shared/DateReminder.swift Shared/CustomSpecialDate.swift ttcalendar/WidgetFolderAccess.swift Scripts/test_custom_date_storage.swift -o /private/tmp/ttcalendar-custom-storage-tests
 /private/tmp/ttcalendar-custom-storage-tests
 
 swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Shared/DateReminder.swift Shared/CustomSpecialDate.swift ttcalendar/DateReminderPlan.swift Scripts/test_date_reminders.swift -o /private/tmp/ttcalendar-reminder-tests
