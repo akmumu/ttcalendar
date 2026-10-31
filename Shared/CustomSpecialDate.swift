@@ -151,46 +151,66 @@ struct CustomSpecialDate: Identifiable, Codable, Hashable {
 
 enum CustomSpecialDateStore {
     private static let storeKey = "customSpecialDates"
+    static let didChangeNotification = Notification.Name("CustomSpecialDatesDidChange")
+
+    private enum StoreError: LocalizedError {
+        case writeFailed(String)
+        case dateNotFound
+
+        var errorDescription: String? {
+            switch self {
+            case .writeFailed(let reason): return "无法保存自定义日期：\(reason)"
+            case .dateNotFound: return "这条日期已不存在，请重新读取后再试。"
+            }
+        }
+    }
 
     static func load() -> [CustomSpecialDate] {
-        guard let data = userDefaults.data(forKey: storeKey),
-              let dates = try? JSONDecoder().decode([CustomSpecialDate].self, from: data) else {
-            return []
-        }
+        (try? loadChecked()) ?? []
+    }
+
+    // Management and mutations must distinguish an empty list from a failed read.
+    static func loadChecked(preferences: WidgetPreferences = .shared) throws -> [CustomSpecialDate] {
+        guard let data = try preferences.readData(forKey: storeKey) else { return [] }
+        let dates = try JSONDecoder().decode([CustomSpecialDate].self, from: data)
 
         let currentYear = Calendar.autoupdatingCurrent.component(.year, from: Date())
         let resolvedDates = dates.map { $0.resolvingLegacyYear(currentYear) }
         if resolvedDates != dates {
-            save(resolvedDates)
+            try save(resolvedDates, preferences: preferences)
         }
         return resolvedDates
     }
 
-    static func save(_ dates: [CustomSpecialDate]) {
-        guard let data = try? JSONEncoder().encode(dates) else {
-            return
+    private static func save(_ dates: [CustomSpecialDate], preferences: WidgetPreferences) throws {
+        let data = try JSONEncoder().encode(dates)
+        guard preferences.set(data, forKey: storeKey) else {
+            throw StoreError.writeFailed(preferences.lastWriteError ?? "未知错误")
         }
-        userDefaults.set(data, forKey: storeKey)
     }
 
-    static func add(_ date: CustomSpecialDate) {
-        var dates = load()
+    static func add(_ date: CustomSpecialDate, preferences: WidgetPreferences = .shared) throws {
+        var dates = try loadChecked(preferences: preferences)
         dates.append(date)
-        save(dates)
+        try save(dates, preferences: preferences)
+        NotificationCenter.default.post(name: didChangeNotification, object: nil)
     }
 
-    static func update(_ date: CustomSpecialDate) {
-        var dates = load()
-        if let index = dates.firstIndex(where: { $0.id == date.id }) {
-            dates[index] = date
-            save(dates)
+    static func update(_ date: CustomSpecialDate, preferences: WidgetPreferences = .shared) throws {
+        var dates = try loadChecked(preferences: preferences)
+        guard let index = dates.firstIndex(where: { $0.id == date.id }) else {
+            throw StoreError.dateNotFound
         }
+        dates[index] = date
+        try save(dates, preferences: preferences)
+        NotificationCenter.default.post(name: didChangeNotification, object: nil)
     }
 
-    static func delete(_ date: CustomSpecialDate) {
-        var dates = load()
+    static func delete(_ date: CustomSpecialDate, preferences: WidgetPreferences = .shared) throws {
+        var dates = try loadChecked(preferences: preferences)
         dates.removeAll { $0.id == date.id }
-        save(dates)
+        try save(dates, preferences: preferences)
+        NotificationCenter.default.post(name: didChangeNotification, object: nil)
     }
 
     static func customDate(
@@ -201,7 +221,4 @@ enum CustomSpecialDateStore {
         (dates ?? load()).first { $0.matches(date, calendar: calendar) }
     }
 
-    private static var userDefaults: WidgetPreferences {
-        .shared
-    }
 }

@@ -29,12 +29,12 @@ final class DateReminderService: NSObject, ObservableObject, UNUserNotificationC
     @Published private(set) var errorMessage: String?
     @Published private(set) var isUpdating = false
     private let center: DateReminderNotificationCenter
-    private let loadDates: @MainActor () -> [CustomSpecialDate]
+    private let loadDates: @MainActor () throws -> [CustomSpecialDate]
     private var pendingTask: Task<Void, Never>?
     private var pendingUpdateCount = 0
 
     init(center: DateReminderNotificationCenter = UNUserNotificationCenter.current(),
-         loadDates: @escaping @MainActor () -> [CustomSpecialDate] = CustomSpecialDateStore.load) {
+         loadDates: @escaping @MainActor () throws -> [CustomSpecialDate] = { try CustomSpecialDateStore.loadChecked() }) {
         self.center = center
         self.loadDates = loadDates
         super.init()
@@ -90,7 +90,14 @@ final class DateReminderService: NSObject, ObservableObject, UNUserNotificationC
 
     private func rebuild() async {
         await updateAuthorization()
-        let dates = loadDates()
+        let dates: [CustomSpecialDate]
+        do {
+            dates = try loadDates()
+        } catch {
+            errorMessage = "无法读取自定义日期，已保留原有通知：\(error.localizedDescription)"
+            statusMessage = nil
+            return
+        }
         let allItems = DateReminderPlan.items(for: dates)
         let pending = await center.pendingNotificationRequests()
         let ownPending = pending.filter { $0.identifier.hasPrefix(DateReminderPlan.identifierPrefix) }

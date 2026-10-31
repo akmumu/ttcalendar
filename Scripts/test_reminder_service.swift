@@ -41,10 +41,25 @@ struct ReminderServiceTests {
         let center = FakeNotificationCenter()
         var dates = [CustomSpecialDate(month: 10, day: 5, type: .birthday, name: "生日",
                                        reminder: DateReminder(daysBefore: 3))]
-        let service = DateReminderService(center: center, loadDates: { dates })
+        var failReads = false
+        let service = DateReminderService(center: center, loadDates: {
+            if failReads { throw CocoaError(.fileReadNoPermission) }
+            return dates
+        })
         service.start()
         await service.finishPendingUpdates()
         precondition(center.requests.count == 2 && center.authorizationRequests == 0)
+
+        let originalIDs = Set(center.requests.keys)
+        failReads = true
+        service.refresh()
+        await service.finishPendingUpdates()
+        precondition(Set(center.requests.keys) == originalIDs, "Read errors must preserve scheduled reminders")
+        precondition(service.errorMessage?.contains("无法读取自定义日期") == true)
+        failReads = false
+        service.refresh()
+        await service.finishPendingUpdates()
+        precondition(service.errorMessage == nil && Set(center.requests.keys) == originalIDs)
 
         dates[0].name = "纪念日"
         dates[0].reminder?.hour = 17

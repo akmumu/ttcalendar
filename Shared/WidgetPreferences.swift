@@ -29,6 +29,22 @@ final class WidgetPreferences {
     func integer(forKey key: String) -> Int { (value(forKey: key) as? NSNumber)?.intValue ?? 0 }
     func double(forKey key: String) -> Double { (value(forKey: key) as? NSNumber)?.doubleValue ?? 0 }
 
+    // Only a missing file means no saved data. Permission and format errors
+    // must reach callers that would otherwise replace the user's records.
+    func readData(forKey key: String) throws -> Data? {
+        let data: Data
+        do {
+            data = try Data(contentsOf: fileURL(key))
+        } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
+            return nil
+        }
+        guard let values = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
+              let value = values["value"] as? Data else {
+            throw CocoaError(.propertyListReadCorrupt)
+        }
+        return value
+    }
+
     @discardableResult
     func set(_ value: Any, forKey key: String) -> Bool {
         do {
@@ -67,13 +83,14 @@ final class WidgetPreferences {
     func migrateLegacyData(from legacyGroup: URL? = nil) {
         guard Bundle.main.bundleIdentifier != Self.extensionIdentifier else { return }
         let keys = ["cachedHolidayEvents", "customSpecialDates"]
-        guard keys.contains(where: { !FileManager.default.fileExists(atPath: fileURL($0).path) }) else { return }
         let group = legacyGroup ?? FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library/Group Containers/group.akmumu.ttcalendar", isDirectory: true)
         let preferences = group.appendingPathComponent("Library/Preferences/group.akmumu.ttcalendar.plist")
         do {
+            let missingKeys = try keys.filter { try readData(forKey: $0) == nil }
+            guard !missingKeys.isEmpty else { return }
             let json = group.appendingPathComponent("cachedHolidayEvents.json")
-            if !FileManager.default.fileExists(atPath: fileURL("cachedHolidayEvents").path),
+            if missingKeys.contains("cachedHolidayEvents"),
                FileManager.default.fileExists(atPath: json.path) {
                 let data = try Data(contentsOf: json)
                 _ = try JSONSerialization.jsonObject(with: data)
@@ -82,7 +99,7 @@ final class WidgetPreferences {
             guard FileManager.default.fileExists(atPath: preferences.path) else { return }
             let data = try Data(contentsOf: preferences)
             let old = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
-            for key in keys where !FileManager.default.fileExists(atPath: fileURL(key).path) {
+            for key in missingKeys where try readData(forKey: key) == nil {
                 if let value = old?[key] as? Data {
                     set(value, forKey: key)
                 }

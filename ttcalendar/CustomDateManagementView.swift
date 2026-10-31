@@ -23,6 +23,8 @@ struct CustomDateManagementView: View {
     @State private var showingAddSheet = false
     @State private var editingDate: CustomSpecialDate?
     @State private var selectedList: DateList = .upcoming
+    @State private var loadError: String?
+    @State private var operationError: String?
     @ObservedObject private var reminders = DateReminderService.shared
 
     private var upcomingDates: [CustomSpecialDate] {
@@ -54,15 +56,29 @@ struct CustomDateManagementView: View {
         .onAppear {
             loadDates()
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            loadDates()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: CustomSpecialDateStore.didChangeNotification)) { _ in
+            loadDates()
+        }
+        .alert("未能删除日期", isPresented: Binding(
+            get: { operationError != nil },
+            set: { if !$0 { operationError = nil } }
+        )) {
+            Button("好", role: .cancel) { operationError = nil }
+        } message: {
+            Text(operationError ?? "")
+        }
         .sheet(isPresented: $showingAddSheet) {
             CustomDateEditView(onSave: { date in
-                CustomSpecialDateStore.add(date)
+                try CustomSpecialDateStore.add(date)
                 finishDatesChange()
             })
         }
         .sheet(item: $editingDate) { date in
             CustomDateEditView(editingDate: date, onSave: { updatedDate in
-                CustomSpecialDateStore.update(updatedDate)
+                try CustomSpecialDateStore.update(updatedDate)
                 finishDatesChange()
             })
         }
@@ -70,7 +86,21 @@ struct CustomDateManagementView: View {
 
     @ViewBuilder
     private var content: some View {
-        if isCompact {
+        if let loadError {
+            VStack(alignment: .leading, spacing: 10) {
+                Label("无法读取自定义日期", systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(.orange)
+                Text("读取失败不代表日期已删除。小组件可能仍能读取记录，或显示之前的内容。")
+                    .font(.caption)
+                Text(loadError)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+                Button("重新读取") { loadDates() }
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(isCompact ? 12 : 0)
+        } else if isCompact {
             compactBody
         } else {
             regularBody
@@ -262,8 +292,7 @@ struct CustomDateManagementView: View {
                     CustomDateRow(date: date, isArchived: selectedList == .archived, onEdit: {
                         editingDate = date
                     }, onDelete: {
-                        CustomSpecialDateStore.delete(date)
-                        finishDatesChange()
+                        deleteDate(date)
                     })
                 }
             }
@@ -276,8 +305,7 @@ struct CustomDateManagementView: View {
                 CompactCustomDateRow(date: date, onEdit: {
                     editingDate = date
                 }, onDelete: {
-                    CustomSpecialDateStore.delete(date)
-                    finishDatesChange()
+                    deleteDate(date)
                 })
 
                 if index < min(upcomingDates.count, 4) - 1 {
@@ -301,7 +329,22 @@ struct CustomDateManagementView: View {
     }
 
     private func loadDates() {
-        customDates = CustomSpecialDateStore.load()
+        do {
+            customDates = try CustomSpecialDateStore.loadChecked()
+            loadError = nil
+        } catch {
+            loadError = error.localizedDescription
+        }
+    }
+
+    private func deleteDate(_ date: CustomSpecialDate) {
+        do {
+            try CustomSpecialDateStore.delete(date)
+            finishDatesChange()
+        } catch {
+            operationError = error.localizedDescription
+            loadDates()
+        }
     }
 
     private func reloadWidgets() {
@@ -500,12 +543,13 @@ struct CustomDateEditView: View {
     @State private var reminderEnabled: Bool
     @State private var reminder: DateReminder
     @State private var isSaving = false
+    @State private var saveError: String?
     @ObservedObject private var reminders = DateReminderService.shared
 
     private let editingDate: CustomSpecialDate?
-    private let onSave: (CustomSpecialDate) -> Void
+    private let onSave: (CustomSpecialDate) throws -> Void
 
-    init(editingDate: CustomSpecialDate? = nil, onSave: @escaping (CustomSpecialDate) -> Void) {
+    init(editingDate: CustomSpecialDate? = nil, onSave: @escaping (CustomSpecialDate) throws -> Void) {
         self.editingDate = editingDate
         self.onSave = onSave
         _reminderEnabled = State(initialValue: editingDate?.reminder != nil)
@@ -600,6 +644,15 @@ struct CustomDateEditView: View {
                 reminderSection
             }
             .formStyle(.grouped)
+
+            if let saveError {
+                Label("保存失败：\(saveError)", systemImage: "exclamationmark.triangle")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    .textSelection(.enabled)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 10)
+            }
 
             Divider()
 
@@ -760,8 +813,13 @@ struct CustomDateEditView: View {
             reminder: reminderEnabled ? reminder : nil
         )
 
-        onSave(date)
-        dismiss()
+        do {
+            try onSave(date)
+            saveError = nil
+            dismiss()
+        } catch {
+            saveError = error.localizedDescription
+        }
     }
 
     private var previewDragGesture: some Gesture {

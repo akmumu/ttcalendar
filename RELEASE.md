@@ -19,9 +19,9 @@
 | 系统 / 架构 | macOS 14.0+，Intel + Apple Silicon |
 | 分发方式 | ad-hoc 签名，当前没有 Developer ID 公证 |
 
-本次版本为 **1.27 / build 27**。下面用下一版 **1.28 / build 28** 演示；每次先改这两个数字，已发布的版本号、标签和安装包不要重复使用。
+本次版本为 **1.28 / build 28**。下面用下一版 **1.29 / build 29** 演示；每次先改这两个数字，已发布的版本号、标签和安装包不要重复使用。
 
-本次执行结果见 [1.27 发布验证记录](release-notes/1.27-validation.md)，记录构建、签名、上传完整性、线上更新源及客户端验证结果。
+本次执行结果见 [1.28 发布验证记录](release-notes/1.28-validation.md)，记录构建、签名、上传完整性、线上更新源及客户端验证结果。
 
 ## 0. 发布环境（新电脑需要准备）
 
@@ -60,8 +60,8 @@ git status --short
 git fetch origin
 git log --oneline HEAD..origin/main
 
-export RELEASE_VERSION=1.28
-export RELEASE_BUILD=28
+export RELEASE_VERSION=1.29
+export RELEASE_BUILD=29
 export RELEASE_OUTPUT="$PWD/build/releases/$RELEASE_VERSION"
 export RELEASE_DERIVED="$PWD/DerivedData/release-$RELEASE_VERSION"
 mkdir -p "$RELEASE_OUTPUT"
@@ -81,6 +81,9 @@ python3 Scripts/bump_version.py "$RELEASE_VERSION" "$RELEASE_BUILD"
 swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Scripts/test_widget_preferences.swift -o /private/tmp/ttcalendar-storage-tests
 /private/tmp/ttcalendar-storage-tests
 
+swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Shared/DateReminder.swift Shared/CustomSpecialDate.swift Scripts/test_custom_date_storage.swift -o /private/tmp/ttcalendar-custom-storage-tests
+/private/tmp/ttcalendar-custom-storage-tests
+
 swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Shared/DateReminder.swift Shared/CustomSpecialDate.swift ttcalendar/DateReminderPlan.swift Scripts/test_date_reminders.swift -o /private/tmp/ttcalendar-reminder-tests
 /private/tmp/ttcalendar-reminder-tests
 
@@ -94,7 +97,7 @@ swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPrefe
 /private/tmp/ttcalendar-cache-tests
 ```
 
-五组应输出 `PASS`。同时检查日期增删改、提醒选项和权限提示。日期计算/模拟通知测试不会实际发送系统通知；新通知功能还需在允许通知的环境中设置一条近未来提醒，验证关闭应用后收到，并验证关闭提醒或删除后不再发送。
+六组应输出 `PASS`。同时检查日期增删改、提醒选项和权限提示。日期计算/模拟通知测试不会实际发送系统通知；新通知功能还需在允许通知的环境中设置一条近未来提醒，验证关闭应用后收到，并验证关闭提醒或删除后不再发送。
 
 需要开发安装时可运行 `Scripts/install_debug_widget.sh`，但它会替换 `/Applications/抬头日历.app`。如果准备验证旧版自动升级，先保留已安装旧版，别提前用开发版替换。
 
@@ -229,6 +232,17 @@ curl -fsSL "https://akmumu.github.io/ttcalendar/ttcalendar-$RELEASE_VERSION.html
 2. 能下载并安装，重新启动后显示新版本。
 3. 原有自定义日期仍在，桌面小组件的班/休标记、月份切换正常。
 4. 新增提醒可以授权、发送、修改和取消。
+5. 启动台/应用搜索中“抬头日历”只出现应用程序目录里的正式版；不能只检查小组件注册数量。
+
+验证结束后，卸载检查用 DMG，并取消本次构建副本的应用注册：
+
+```sh
+LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Versions/Current/Frameworks/LaunchServices.framework/Versions/Current/Support/lsregister"
+"$LSREGISTER" -u "$RELEASE_DERIVED/Build/Products/Release/抬头日历.app"
+"$LSREGISTER" -f '/Applications/抬头日历.app'
+```
+
+构建时的 `REGISTER_APP_WITH_LAUNCH_SERVICES=NO` 不能替代发布后检查：后续访问构建目录或安装包仍可能产生注册记录。若仍有重复项，用 `lsregister -dump` 按 `akmumu.ttcalendar` 精确定位旧构建、打包目录和已卸载镜像中的路径，逐个取消注册，保留 `/Applications/抬头日历.app`。只清理本项目的重复入口，不重置整个启动台，也不删除用户数据；重新打开启动台搜索验证结果。
 
 记录区分“签名/链接校验”“主应用升级成功”“桌面小组件验证”“实际通知送达”，不要把其中一项通过当作全部通过。
 
