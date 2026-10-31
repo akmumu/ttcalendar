@@ -20,6 +20,7 @@ Once the widget is added it keeps showing on its own — you don't need to keep 
 
 ## Features
 
+- Back up custom dates to a local or iCloud Drive folder in widget settings. Each change creates a separate snapshot. Restore a chosen backup manually on any Mac.
 - Large desktop widget: shows a single-month calendar with lunar dates, holidays, solar terms, weekends, and adjusted workday markers.
 - Extra-large desktop widget: shows the current month and next month together, plus today's details and upcoming holiday or solar term reminders.
 - Widget month navigation: switch to the previous month, next month, or return to the current month.

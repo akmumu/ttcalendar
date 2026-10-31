@@ -14,6 +14,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         WidgetPreferences.shared.migrateLegacyData()
+        NotificationCenter.default.addObserver(DateBackupService.shared, selector: #selector(DateBackupService.datesChanged),
+                                               name: CustomSpecialDateStore.didChangeNotification, object: nil)
+        DateBackupService.shared.enqueue()
         DateReminderService.shared.start()
         AppInstallRefreshCoordinator.refreshOnLaunch()
         HolidayEventSync.shared.refreshAroundToday {
@@ -30,9 +33,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        guard DateReminderService.shared.isUpdating else { return .terminateNow }
+        guard DateReminderService.shared.isUpdating || DateBackupService.shared.isWriting else { return .terminateNow }
         Task {
             await DateReminderService.shared.finishPendingUpdates()
+            await DateBackupService.shared.finishPendingWrites()
             sender.reply(toApplicationShouldTerminate: true)
         }
         return .terminateLater

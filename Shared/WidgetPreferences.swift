@@ -31,13 +31,20 @@ final class WidgetPreferences {
 
     // Only a missing file means no saved data. Permission and format errors
     // must reach callers that would otherwise replace the user's records.
-    func readData(forKey key: String) throws -> Data? {
-        let data: Data
+    func readFile(forKey key: String) throws -> Data? {
         do {
-            data = try Data(contentsOf: fileURL(key))
+            return try Data(contentsOf: fileURL(key))
         } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
             return nil
         }
+    }
+
+    func readData(forKey key: String) throws -> Data? {
+        guard let data = try readFile(forKey: key) else { return nil }
+        return try Self.payload(from: data)
+    }
+
+    nonisolated static func payload(from data: Data) throws -> Data {
         guard let values = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
               let value = values["value"] as? Data else {
             throw CocoaError(.propertyListReadCorrupt)

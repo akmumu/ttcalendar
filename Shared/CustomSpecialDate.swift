@@ -189,6 +189,14 @@ enum CustomSpecialDateStore {
         }
     }
 
+    static func replaceFromBackup(_ dates: [CustomSpecialDate], expectedFile: Data?, preferences: WidgetPreferences) throws {
+        guard try preferences.readFile(forKey: storeKey) == expectedFile else {
+            throw StoreError.writeFailed("本机日期已改变，请重新预览备份。")
+        }
+        try save(dates, preferences: preferences)
+        NotificationCenter.default.post(name: didChangeNotification, object: nil)
+    }
+
     static func add(_ date: CustomSpecialDate, preferences: WidgetPreferences = .shared) throws {
         var dates = try loadChecked(preferences: preferences)
         dates.append(date)

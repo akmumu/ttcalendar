@@ -181,7 +181,7 @@ struct ContentView: View {
             ActionListRow(
                 systemName: "gearshape",
                 title: "桌面小组件设置",
-                subtitle: "权限、节假日与刷新"
+                subtitle: "日期备份、权限、节假日与刷新"
             ) {
                 detailMode = .settings
             }
@@ -338,6 +338,12 @@ struct ContentView: View {
                         onOpenCalendar: openCalendarApp,
                         onRefreshWidgets: forceReloadWidgets
                     )
+                    DateBackupView(service: .shared) {
+                        DateReminderService.shared.refresh()
+                        AppInstallRefreshCoordinator.reloadWidgetsRepeatedly()
+                        refreshPreview()
+                    }
+                    .dashboardMaterialCard(radius: 10)
                     WidgetRecoveryView(recovery: recovery)
                     VStack(alignment: .leading, spacing: 8) {
                         Toggle("自动检查新版本", isOn: Binding(
