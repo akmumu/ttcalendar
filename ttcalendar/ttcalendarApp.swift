@@ -16,6 +16,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         WidgetPreferences.shared.migrateLegacyData()
         NotificationCenter.default.addObserver(DateBackupService.shared, selector: #selector(DateBackupService.datesChanged),
                                                name: CustomSpecialDateStore.didChangeNotification, object: nil)
+        DateLibrary.shared.offerSetupForNewInstall()
+        NotificationCenter.default.addObserver(DateLibrary.shared, selector: #selector(DateLibrary.datesChanged(_:)),
+                                               name: CustomSpecialDateStore.didChangeNotification, object: nil)
+        DateLibrary.shared.refresh()
         DateBackupService.shared.enqueue()
         DateReminderService.shared.start()
         AppInstallRefreshCoordinator.refreshOnLaunch()
@@ -29,6 +33,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
+        DateLibrary.shared.checkForChanges()
         DateReminderService.shared.refresh()
     }
 
@@ -86,6 +91,7 @@ struct ttcalendarApp: App {
 
     init() {
         WidgetFolderAccess.restore()
+        DateLibrary.shared.resume()
     }
 
     var body: some Scene {

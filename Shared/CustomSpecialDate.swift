@@ -149,7 +149,16 @@ struct CustomSpecialDate: Identifiable, Codable, Hashable {
     }
 }
 
+protocol DateLibraryFile {
+    func read() throws -> Data
+    func replace(_ file: Data, expecting original: Data?) throws
+}
+
 enum CustomSpecialDateStore {
+    // Installed only by the host. WidgetKit reads its own local display copy.
+    static var library: DateLibraryFile?
+    static let widgetSnapshotKey = "selectedLibraryDates"
+
     private static let storeKey = "customSpecialDates"
     static let didChangeNotification = Notification.Name("CustomSpecialDatesDidChange")
 
@@ -165,60 +174,91 @@ enum CustomSpecialDateStore {
         }
     }
 
+    static func currentFile(preferences: WidgetPreferences) throws -> Data? {
+        if preferences === WidgetPreferences.shared, let library { return try library.read() }
+        return try preferences.readFile(forKey: storeKey)
+    }
+
     static func load() -> [CustomSpecialDate] {
-        (try? loadChecked()) ?? []
-    }
-
-    // Management and mutations must distinguish an empty list from a failed read.
-    static func loadChecked(preferences: WidgetPreferences = .shared) throws -> [CustomSpecialDate] {
-        guard let data = try preferences.readData(forKey: storeKey) else { return [] }
-        let dates = try JSONDecoder().decode([CustomSpecialDate].self, from: data)
-
-        let currentYear = Calendar.autoupdatingCurrent.component(.year, from: Date())
-        let resolvedDates = dates.map { $0.resolvingLegacyYear(currentYear) }
-        if resolvedDates != dates {
-            try save(resolvedDates, preferences: preferences)
+        if Bundle.main.bundleIdentifier == WidgetPreferences.extensionIdentifier {
+            do {
+                if let data = try WidgetPreferences.shared.readData(forKey: widgetSnapshotKey) {
+                    return resolveYears(try JSONDecoder().decode([CustomSpecialDate].self, from: data))
+                }
+            } catch { return [] }
         }
-        return resolvedDates
+        return (try? loadChecked()) ?? []
     }
 
-    private static func save(_ dates: [CustomSpecialDate], preferences: WidgetPreferences) throws {
+    static func records(in file: Data?) throws -> [CustomSpecialDate] {
+        guard let file else { return [] }
+        let dates = try JSONDecoder().decode([CustomSpecialDate].self, from: WidgetPreferences.payload(from: file))
+        guard Set(dates.map(\.id)).count == dates.count,
+              dates.allSatisfy({ (1...12).contains($0.month) && (1...31).contains($0.day) }) else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        return dates
+    }
+
+    private static func resolveYears(_ dates: [CustomSpecialDate]) -> [CustomSpecialDate] {
+        let year = Calendar.autoupdatingCurrent.component(.year, from: Date())
+        return dates.map { $0.resolvingLegacyYear(year) }
+    }
+
+    static func loadChecked(preferences: WidgetPreferences = .shared) throws -> [CustomSpecialDate] {
+        let file = try currentFile(preferences: preferences)
+        let dates = try records(in: file)
+        let resolved = resolveYears(dates)
+        if dates != resolved { try save(resolved, expecting: file, preferences: preferences) }
+        return resolved
+    }
+
+    private static func save(_ dates: [CustomSpecialDate], expecting original: Data?, preferences: WidgetPreferences) throws {
         let data = try JSONEncoder().encode(dates)
-        guard preferences.set(data, forKey: storeKey) else {
-            throw StoreError.writeFailed(preferences.lastWriteError ?? "未知错误")
+        if preferences === WidgetPreferences.shared, let library {
+            let file = try PropertyListSerialization.data(fromPropertyList: ["value": data], format: .binary, options: 0)
+            try library.replace(file, expecting: original)
+        } else {
+            guard try preferences.readFile(forKey: storeKey) == original else {
+                throw StoreError.writeFailed("日期已改变，请重新读取。")
+            }
+            guard preferences.set(data, forKey: storeKey) else {
+                throw StoreError.writeFailed(preferences.lastWriteError ?? "未知错误")
+            }
         }
     }
 
     static func replaceFromBackup(_ dates: [CustomSpecialDate], expectedFile: Data?, preferences: WidgetPreferences) throws {
-        guard try preferences.readFile(forKey: storeKey) == expectedFile else {
-            throw StoreError.writeFailed("本机日期已改变，请重新预览备份。")
-        }
-        try save(dates, preferences: preferences)
+        try save(dates, expecting: expectedFile, preferences: preferences)
+        NotificationCenter.default.post(name: didChangeNotification, object: nil)
+    }
+
+    private static func edit(preferences: WidgetPreferences, _ change: (inout [CustomSpecialDate]) throws -> Void) throws {
+        let file = try currentFile(preferences: preferences)
+        var dates = resolveYears(try records(in: file))
+        try change(&dates)
+        try save(dates, expecting: file, preferences: preferences)
         NotificationCenter.default.post(name: didChangeNotification, object: nil)
     }
 
     static func add(_ date: CustomSpecialDate, preferences: WidgetPreferences = .shared) throws {
-        var dates = try loadChecked(preferences: preferences)
-        dates.append(date)
-        try save(dates, preferences: preferences)
-        NotificationCenter.default.post(name: didChangeNotification, object: nil)
+        try edit(preferences: preferences) { $0.append(date) }
     }
 
-    static func update(_ date: CustomSpecialDate, preferences: WidgetPreferences = .shared) throws {
-        var dates = try loadChecked(preferences: preferences)
-        guard let index = dates.firstIndex(where: { $0.id == date.id }) else {
-            throw StoreError.dateNotFound
+    static func update(_ date: CustomSpecialDate, original: CustomSpecialDate? = nil, preferences: WidgetPreferences = .shared) throws {
+        try edit(preferences: preferences) { dates in
+            guard let index = dates.firstIndex(where: { $0.id == date.id }) else { throw StoreError.dateNotFound }
+            guard original == nil || dates[index] == original else { throw StoreError.writeFailed("这条日期已改变，请重新打开编辑。") }
+            dates[index] = date
         }
-        dates[index] = date
-        try save(dates, preferences: preferences)
-        NotificationCenter.default.post(name: didChangeNotification, object: nil)
     }
 
     static func delete(_ date: CustomSpecialDate, preferences: WidgetPreferences = .shared) throws {
-        var dates = try loadChecked(preferences: preferences)
-        dates.removeAll { $0.id == date.id }
-        try save(dates, preferences: preferences)
-        NotificationCenter.default.post(name: didChangeNotification, object: nil)
+        try edit(preferences: preferences) { dates in
+            guard let index = dates.firstIndex(where: { $0.id == date.id }) else { throw StoreError.dateNotFound }
+            guard dates[index] == date else { throw StoreError.writeFailed("这条日期已改变，请重新读取。") }
+            dates.remove(at: index)
+        }
     }
 
     static func customDate(

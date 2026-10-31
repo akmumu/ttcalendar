@@ -19,6 +19,8 @@ struct ContentView: View {
     }
 
     @EnvironmentObject private var updaterViewModel: UpdaterViewModel
+    @ObservedObject private var dateLibrary = DateLibrary.shared
+    @State private var showsBackups = false
     @ObservedObject private var recovery = WidgetRecoveryService.shared
     @State private var authorizationStatus = HolidayEventSync.shared.authorizationStatus
     @State private var holidayCalendarNames = HolidayEventSync.shared.holidayCalendarNames
@@ -49,6 +51,12 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshDashboardState()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: CustomSpecialDateStore.didChangeNotification)) { _ in
+            refreshPreview()
+        }
+        .sheet(isPresented: $dateLibrary.showSetup) {
+            DateLibraryView(library: dateLibrary, initialSetup: true).frame(minWidth: 420)
         }
         .onOpenURL { url in
             switch CalendarAppLink.action(for: url) {
@@ -181,7 +189,7 @@ struct ContentView: View {
             ActionListRow(
                 systemName: "gearshape",
                 title: "桌面小组件设置",
-                subtitle: "日期备份、权限、节假日与刷新"
+                subtitle: "日期库、权限、节假日与刷新"
             ) {
                 detailMode = .settings
             }
@@ -338,11 +346,16 @@ struct ContentView: View {
                         onOpenCalendar: openCalendarApp,
                         onRefreshWidgets: forceReloadWidgets
                     )
-                    DateBackupView(service: .shared) {
-                        DateReminderService.shared.refresh()
-                        AppInstallRefreshCoordinator.reloadWidgetsRepeatedly()
-                        refreshPreview()
+                    DateLibraryView(library: dateLibrary)
+                        .dashboardMaterialCard(radius: 10)
+                    DisclosureGroup("备份与恢复", isExpanded: $showsBackups) {
+                        DateBackupView(service: .shared) {
+                            DateReminderService.shared.refresh()
+                            AppInstallRefreshCoordinator.reloadWidgetsRepeatedly()
+                            refreshPreview()
+                        }
                     }
+                    .padding(12)
                     .dashboardMaterialCard(radius: 10)
                     WidgetRecoveryView(recovery: recovery)
                     VStack(alignment: .leading, spacing: 8) {

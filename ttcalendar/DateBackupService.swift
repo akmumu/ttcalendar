@@ -52,7 +52,7 @@ enum DateBackupFile {
         var errorDescription: String? {
             switch self {
             case .downloading: return "已请求从 iCloud 云盘下载此备份。请等下载完成后再选择该文件。"
-            case .localChanged: return "本机日期在预览后发生了变化。请重新选择备份再确认恢复。"
+            case .localChanged: return "日期库在预览后发生了变化。请重新选择备份再确认恢复。"
             }
         }
     }
@@ -109,14 +109,14 @@ final class DateBackupService: ObservableObject {
         guard let bookmark = defaults.dictionary(forKey: configKey)?["bookmark"] as? Data else { return }
         let payload: Data
         do {
-            guard let data = try preferences.readData(forKey: "customSpecialDates") else {
-                errorMessage = "还没有本机日期文件。首次保存日期后会自动备份。"
+            guard let file = try CustomSpecialDateStore.currentFile(preferences: preferences) else {
+                errorMessage = "添加第一条日期后会自动备份。"
                 return
             }
-            payload = data
+            payload = try WidgetPreferences.payload(from: file)
             _ = try DateBackupFile.checkedDates(payload)
         } catch {
-            errorMessage = "无法备份本机日期：\(error.localizedDescription)"
+            errorMessage = "无法备份当前日期库：\(error.localizedDescription)"
             return
         }
         let digest = Data(SHA256.hash(data: payload))
@@ -168,14 +168,14 @@ final class DateBackupService: ObservableObject {
     func preview(_ file: URL) async throws -> Preview {
         let payload = try await Task.detached { try DateBackupFile.read(file) }.value
         let dates = try DateBackupFile.checkedDates(payload)
-        let previous = try preferences.readFile(forKey: "customSpecialDates")
+        let previous = try CustomSpecialDateStore.currentFile(preferences: preferences)
         let count = previous.map { raw in try? DateBackupFile.checkedDates(WidgetPreferences.payload(from: raw)).count } ?? 0
         return Preview(name: file.lastPathComponent, dates: dates, previousFile: previous, previousCount: count)
     }
 
     /// Read the local list again immediately before replacement, after user confirmation.
     func restore(_ preview: Preview) throws -> URL? {
-        let current = try preferences.readFile(forKey: "customSpecialDates")
+        let current = try CustomSpecialDateStore.currentFile(preferences: preferences)
         guard current == preview.previousFile else { throw DateBackupFile.BackupError.localChanged }
         var safetyCopy: URL?
         if let current {

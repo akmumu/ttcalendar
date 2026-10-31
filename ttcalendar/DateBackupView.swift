@@ -12,7 +12,7 @@ struct DateBackupView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Label("自定义日期备份", systemImage: "externaldrive").font(.headline)
-            Text("选择本地或 iCloud 云盘文件夹。日期有改动时会新增一份备份，保留以前的版本。在另一台 Mac 上可从文件手动恢复。")
+            Text("选好文件夹后，日期有改动就会自动备份。")
                 .font(.callout).foregroundStyle(.secondary)
             if let folder = service.folderPath {
                 Text(folder).font(.caption).textSelection(.enabled)
@@ -37,16 +37,14 @@ struct DateBackupView: View {
             if let safetyCopy {
                 Button("查看恢复前的副本") { NSWorkspace.shared.activateFileViewerSelecting([safetyCopy]) }
             }
-            Text("本机日期文件").font(.caption).foregroundStyle(.secondary)
-            Text((WidgetPreferences.storageDirectory.appendingPathComponent("customSpecialDates.plist").path as NSString).abbreviatingWithTildeInPath)
-                .font(.caption).textSelection(.enabled)
+
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
         .alert("恢复自定义日期？", isPresented: Binding(get: { preview != nil }, set: { if !$0 { preview = nil } }),
                presenting: preview) { item in
             Button("取消", role: .cancel) {}
-            Button("替换本机日期", role: .destructive) {
+            Button("替换当前库日期", role: .destructive) {
                 do {
                     safetyCopy = try service.restore(item)
                     didRestore()
@@ -54,7 +52,7 @@ struct DateBackupView: View {
                 } catch { message = error.localizedDescription }
             }
         } message: { item in
-            let local = item.previousCount.map { "本机的 \($0) 条日期" } ?? "本机已损坏的日期文件"
+            let local = item.previousCount.map { "本机的 \($0) 条日期" } ?? "当前库中损坏的日期文件"
             Text("将用「\(item.name)」中的 \(item.dates.count) 条日期替换\(local)。恢复前会为被替换的日期保留本机副本。")
         }
     }

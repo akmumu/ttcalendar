@@ -45,14 +45,16 @@ enum WidgetFolderAccess {
     }
 
     static func authorize(_ url: URL, preferences: WidgetPreferences? = nil,
-                          defaults: UserDefaults = .standard) throws -> String? {
+                          defaults: UserDefaults = .standard, requireDates: Bool = true) throws -> String? {
         let preferences = preferences ?? .shared
         guard matchesDirectory(url, preferences.directory) else { throw AccessError.wrongFolder }
         let started = url.startAccessingSecurityScopedResource()
         do {
             // Prove the existing record file can actually be read before accepting the grant.
-            guard let data = try preferences.readData(forKey: "customSpecialDates") else { throw AccessError.missingDates }
-            _ = try JSONDecoder().decode([CustomSpecialDate].self, from: data)
+            if requireDates {
+                guard let data = try preferences.readData(forKey: "customSpecialDates") else { throw AccessError.missingDates }
+                _ = try JSONDecoder().decode([CustomSpecialDate].self, from: data)
+            }
         } catch {
             if started { url.stopAccessingSecurityScopedResource() }
             throw error
@@ -65,7 +67,7 @@ enum WidgetFolderAccess {
             try saveBookmark(for: url, defaults: defaults)
             return nil
         } catch {
-            return "已读到原日期。本次授权未能保存，下次打开时可能需要再次选择文件夹。"
+            return "本次文件夹授权未能保存，下次打开时可能需要再次选择文件夹。"
         }
     }
 

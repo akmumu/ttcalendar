@@ -86,7 +86,7 @@ struct CustomDateManagementView: View {
         }
         .sheet(item: $editingDate) { date in
             CustomDateEditView(editingDate: date, onSave: { updatedDate in
-                try CustomSpecialDateStore.update(updatedDate)
+                try CustomSpecialDateStore.update(updatedDate, original: date)
                 finishDatesChange()
             })
         }
@@ -371,7 +371,7 @@ struct CustomDateManagementView: View {
             needsFolderAccess = false
             loadError = nil
         } catch {
-            needsFolderAccess = WidgetFolderAccess.isPermissionError(error)
+            needsFolderAccess = CustomSpecialDateStore.library == nil && WidgetFolderAccess.isPermissionError(error)
             loadError = error.localizedDescription
         }
     }

@@ -80,6 +80,11 @@ final class WidgetPreferences {
         }
     }
 
+    func removeValue(forKey key: String) throws {
+        do { try FileManager.default.removeItem(at: fileURL(key)) }
+        catch let error as CocoaError where error.code == .fileNoSuchFile {}
+    }
+
     private func fileURL(_ key: String) -> URL {
         precondition(!key.contains("/") && !key.contains(".."))
         return directory.appendingPathComponent(key).appendingPathExtension("plist")
