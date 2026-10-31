@@ -19,34 +19,45 @@ struct Provider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<SimpleEntry>) -> Void) {
+        // Interactive month changes must not wait for a network request.
+        if WidgetMonthNavigation.hasRecentInteraction {
+            completion(makeTimeline(family: context.family))
+            return
+        }
+        Task {
+            await WidgetUpdateChecker.refreshIfNeeded()
+            completion(makeTimeline(family: context.family))
+        }
+    }
+
+    private func makeTimeline(family: WidgetFamily) -> Timeline<SimpleEntry> {
         let now = Date()
         var calendar = Calendar.autoupdatingCurrent
         calendar.timeZone = .autoupdatingCurrent
 
         if WidgetMonthNavigation.hasRecentInteraction {
-            let entry = makeEntry(date: now, family: context.family)
+            let entry = makeEntry(date: now, family: family)
             let nextFullRefresh = calendar.date(byAdding: .second, value: 15, to: now) ?? now
-            completion(Timeline(entries: [entry], policy: .after(nextFullRefresh)))
-            return
+            return Timeline(entries: [entry], policy: .after(nextFullRefresh))
         }
 
         let entryCount = 8
         let entries = (0..<entryCount).compactMap { offset -> SimpleEntry? in
             if offset == 0 {
-                return makeEntry(date: now, family: context.family)
+                return makeEntry(date: now, family: family)
             }
 
             guard let refreshDate = dailyRefreshDate(daysFromNow: offset, now: now, calendar: calendar) else {
                 return nil
             }
 
-            return makeEntry(date: refreshDate, family: context.family)
+            return makeEntry(date: refreshDate, family: family)
         }
 
         // Keep future day entries for delayed reloads, but request fresh data
         // hourly rather than waiting until the eight-day timeline is exhausted.
         // WidgetKit chooses the actual reload time; this is not a deadline.
-        completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(60 * 60))))
+        return Timeline(entries: entries, policy: .after(now.addingTimeInterval(60 * 60)))
     }
 
     private func makeEntry(date: Date, family: WidgetFamily) -> SimpleEntry {
@@ -66,7 +77,8 @@ struct Provider: TimelineProvider {
             nextFestival: highlights.nextFestival,
             nextSolarTerm: highlights.nextSolarTerm,
             nextCustomSpecialDay: highlights.nextCustomSpecialDay,
-            monthOffset: WidgetMonthNavigation.currentOffset
+            monthOffset: WidgetMonthNavigation.currentOffset,
+            availableUpdate: AppUpdateStore.availableUpdate()
         )
     }
 
@@ -90,6 +102,7 @@ struct SimpleEntry: TimelineEntry {
     let nextSolarTerm: NextSpecialDay?
     let nextCustomSpecialDay: NextSpecialDay?
     let monthOffset: Int
+    var availableUpdate: AvailableAppUpdate? = nil
 }
 
 struct CalendarWidgetEntryView: View {
@@ -190,6 +203,26 @@ struct CalendarWidgetEntryView: View {
 
     private func actionButtons(spacing: CGFloat = 6) -> some View {
         HStack(spacing: spacing) {
+            if let update = entry.availableUpdate {
+                Link(destination: CalendarAppLink.updates) {
+                    Image(systemName: "arrow.down.circle.fill")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.orange)
+                        .frame(width: 24, height: 28)
+                }
+                .buttonStyle(.plain)
+                .help("发现新版本 \(update.version)，点击更新")
+                .accessibilityLabel("新版本 \(update.version)，打开更新")
+            }
+            Link(destination: CalendarAppLink.restartWidget) {
+                Image(systemName: "arrow.clockwise.circle")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 24, height: 28)
+            }
+            .buttonStyle(.plain)
+            .help("打开主应用并重启抬头日历小组件")
+            .accessibilityLabel("重启小组件")
             widgetButton(systemName: "chevron.left", intent: PreviousMonthIntent(), help: "上个月")
             widgetButton(systemName: "circle.grid.2x1.left.filled", intent: CurrentMonthIntent(), help: "回到本月")
             widgetButton(systemName: "chevron.right", intent: NextMonthIntent(), help: "下个月")

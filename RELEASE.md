@@ -19,9 +19,9 @@
 | 系统 / 架构 | macOS 14.0+，Intel + Apple Silicon |
 | 分发方式 | ad-hoc 签名，当前没有 Developer ID 公证 |
 
-本次版本为 **1.28 / build 28**。下面用下一版 **1.29 / build 29** 演示；每次先改这两个数字，已发布的版本号、标签和安装包不要重复使用。
+本次版本为 **1.29 / build 29**。下面用下一版 **1.30 / build 30** 演示；每次先改这两个数字，已发布的版本号、标签和安装包不要重复使用。
 
-本次执行结果见 [1.28 发布验证记录](release-notes/1.28-validation.md)，记录构建、签名、上传完整性、线上更新源及客户端验证结果。
+本次执行结果见 [1.29 发布验证记录](release-notes/1.29-validation.md)，记录构建、签名、上传完整性、线上更新源及客户端验证结果。
 
 ## 0. 发布环境（新电脑需要准备）
 
@@ -60,8 +60,8 @@ git status --short
 git fetch origin
 git log --oneline HEAD..origin/main
 
-export RELEASE_VERSION=1.29
-export RELEASE_BUILD=29
+export RELEASE_VERSION=1.30
+export RELEASE_BUILD=30
 export RELEASE_OUTPUT="$PWD/build/releases/$RELEASE_VERSION"
 export RELEASE_DERIVED="$PWD/DerivedData/release-$RELEASE_VERSION"
 mkdir -p "$RELEASE_OUTPUT"
@@ -95,9 +95,18 @@ swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPrefe
 
 swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Shared/DateReminder.swift Shared/CustomSpecialDate.swift Shared/CalendarContent.swift Scripts/test_calendar_cache.swift -o /private/tmp/ttcalendar-cache-tests
 /private/tmp/ttcalendar-cache-tests
+
+swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache Shared/WidgetPreferences.swift Shared/AppUpdateStatus.swift Scripts/test_update_status.swift -o /private/tmp/ttcalendar-update-tests
+/private/tmp/ttcalendar-update-tests
+
+swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache ttcalendar/WidgetRecoveryService.swift Scripts/test_widget_recovery.swift -o /private/tmp/ttcalendar-recovery-tests
+/private/tmp/ttcalendar-recovery-tests
+
+swiftc -module-cache-path /private/tmp/ttcalendar-tests-cache ttcalendar/WidgetRecoveryService.swift Scripts/test_widget_recovery_process.swift -o /private/tmp/ttcalendar-recovery-process-tests
+/private/tmp/ttcalendar-recovery-process-tests
 ```
 
-六组应输出 `PASS`。同时检查日期增删改、提醒选项和权限提示。日期计算/模拟通知测试不会实际发送系统通知；新通知功能还需在允许通知的环境中设置一条近未来提醒，验证关闭应用后收到，并验证关闭提醒或删除后不再发送。
+九组应输出 `PASS`。真实进程测试只启动并结束临时测试进程，不结束实际桌面小组件；需要允许读取本用户的进程信息。同时检查日期增删改、提醒选项和权限提示。日期计算/模拟通知测试不会实际发送系统通知；新通知功能还需在允许通知的环境中设置一条近未来提醒，验证关闭应用后收到，并验证关闭提醒或删除后不再发送。小组件恢复需分别记录扩展进程重启和系统宿主重启的结果；后者会短暂重载所有小组件与通知中心，必须由用户在应用提示中确认。
 
 需要开发安装时可运行 `Scripts/install_debug_widget.sh`，但它会替换 `/Applications/抬头日历.app`。如果准备验证旧版自动升级，先保留已安装旧版，别提前用开发版替换。
 

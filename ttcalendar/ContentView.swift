@@ -19,6 +19,7 @@ struct ContentView: View {
     }
 
     @EnvironmentObject private var updaterViewModel: UpdaterViewModel
+    @ObservedObject private var recovery = WidgetRecoveryService.shared
     @State private var authorizationStatus = HolidayEventSync.shared.authorizationStatus
     @State private var holidayCalendarNames = HolidayEventSync.shared.holidayCalendarNames
     @State private var isRefreshingCalendar = false
@@ -48,6 +49,17 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshDashboardState()
+        }
+        .onOpenURL { url in
+            switch CalendarAppLink.action(for: url) {
+            case .updates:
+                updaterViewModel.checkForUpdates()
+            case .restartWidget:
+                detailMode = .settings
+                recovery.restart()
+            case nil:
+                break
+            }
         }
     }
 
@@ -94,10 +106,19 @@ struct ContentView: View {
 
             Spacer(minLength: 8)
 
-            Text("v\(appVersion)")
-                .font(.caption.weight(.medium))
-                .foregroundStyle(DashboardPalette.secondaryText)
-                .monospacedDigit()
+            VStack(alignment: .trailing, spacing: 4) {
+                Text("v\(appVersion)")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(DashboardPalette.secondaryText)
+                    .monospacedDigit()
+                if let update = updaterViewModel.availableUpdate {
+                    Button("新版本 \(update.version)") { updaterViewModel.checkForUpdates() }
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.orange)
+                        .buttonStyle(.plain)
+                        .disabled(!updaterViewModel.canCheckForUpdates)
+                }
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -168,9 +189,22 @@ struct ContentView: View {
             DashboardListDivider()
 
             ActionListRow(
+                systemName: "arrow.clockwise.circle",
+                title: recovery.isRestarting ? "正在重启小组件…" : "重启小组件",
+                subtitle: "小组件卡住、无法切换月份时使用",
+                isDisabled: recovery.isRestarting
+            ) {
+                detailMode = .settings
+                recovery.restart()
+            }
+
+            DashboardListDivider()
+
+            ActionListRow(
                 systemName: "arrow.down.circle",
-                title: "检查更新",
-                subtitle: "检查最新版本",
+                title: updaterViewModel.availableUpdate.map { "新版本 \($0.version)" } ?? "检查更新",
+                subtitle: updaterViewModel.availableUpdate == nil ? "检查最新版本" : "点击查看更新并安装",
+                tint: updaterViewModel.availableUpdate == nil ? DashboardPalette.accent : .orange,
                 isDisabled: !updaterViewModel.canCheckForUpdates
             ) {
                 updaterViewModel.checkForUpdates()
@@ -286,22 +320,42 @@ struct ContentView: View {
             .frame(maxWidth: 820, alignment: .leading)
             .dashboardMaterialCard(radius: 10)
         case .settings:
-            SettingsDetailView(
-                accessIcon: accessButtonIcon,
-                accessTitle: accessButtonTitle,
-                accessSubtitle: calendarStepDetail,
-                isAccessDisabled: isRefreshingCalendar || isAccessActionDisabled,
-                holidaySubtitle: holidayStepDetail,
-                isHolidayDisabled: isRefreshingCalendar || !hasCalendarAccess,
-                isCalendarDisabled: !hasCalendarAccess,
-                widgetSubtitle: widgetRefreshMessage ?? "让桌面小组件重新读取数据",
-                statusMessage: statusMessage,
-                statusMessageColor: statusMessageColor,
-                onAccess: performAccessAction,
-                onRefreshHoliday: refreshHolidayCalendarData,
-                onOpenCalendar: openCalendarApp,
-                onRefreshWidgets: forceReloadWidgets
-            )
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    SettingsDetailView(
+                        accessIcon: accessButtonIcon,
+                        accessTitle: accessButtonTitle,
+                        accessSubtitle: calendarStepDetail,
+                        isAccessDisabled: isRefreshingCalendar || isAccessActionDisabled,
+                        holidaySubtitle: holidayStepDetail,
+                        isHolidayDisabled: isRefreshingCalendar || !hasCalendarAccess,
+                        isCalendarDisabled: !hasCalendarAccess,
+                        widgetSubtitle: widgetRefreshMessage ?? "让桌面小组件重新读取数据",
+                        statusMessage: statusMessage,
+                        statusMessageColor: statusMessageColor,
+                        onAccess: performAccessAction,
+                        onRefreshHoliday: refreshHolidayCalendarData,
+                        onOpenCalendar: openCalendarApp,
+                        onRefreshWidgets: forceReloadWidgets
+                    )
+                    WidgetRecoveryView(recovery: recovery)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Toggle("自动检查新版本", isOn: Binding(
+                            get: { updaterViewModel.automaticChecks },
+                            set: { updaterViewModel.setAutomaticChecks($0) }
+                        ))
+                        Text("应用运行时自动检查。应用关闭后，小组件也会在系统刷新时检查，成功检查之间至少间隔 6 小时；发现更新显示橙色标记，点击即可打开更新。实际检查时间由系统安排。")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        if let message = updaterViewModel.syncMessage {
+                            Text(message).font(.caption).foregroundStyle(.orange)
+                        }
+                    }
+                    .padding(16)
+                    .dashboardMaterialCard(radius: 10)
+                }
+                .padding(1)
+            }
             .frame(maxWidth: 820, alignment: .leading)
         }
     }
@@ -597,7 +651,7 @@ struct ContentView: View {
 
     private func forceReloadWidgets() {
         AppInstallRefreshCoordinator.reloadWidgetsRepeatedly()
-        widgetRefreshMessage = "已请求系统重新加载小组件，显示时间由 macOS 安排。若仍是旧内容，请点击小组件的“回到本月”，或移除后重新添加。"
+        widgetRefreshMessage = "已请求系统重新加载小组件。若卡住或无法切换月份，可点击侧栏的“重启小组件”。"
         refreshPreview()
     }
 

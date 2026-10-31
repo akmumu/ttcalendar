@@ -25,7 +25,8 @@ Once the widget is added it keeps showing on its own — you don't need to keep 
 - Widget month navigation: switch to the previous month, next month, or return to the current month.
 - Custom special dates: add important dates (birthdays, meetings, anniversaries, etc.) in the main app — names are up to three characters with a customizable single-character corner marker. They appear in the widget with a purple style and an upcoming countdown reminder.
 - Apple Calendar sync: reads local calendars whose names contain "节假日", "假日", or "holiday" to improve adjusted workday and rest day accuracy.
-- Sparkle updates: supports manual update checks inside the app.
+- Widget recovery: restart this app's widget from the sidebar or the widget's header link. If it remains stuck, settings offer a confirmed restart of the system widget service; all desktop widgets and Notification Center briefly reload, while saved dates remain intact.
+- Update reminders: the app and Dock show an available-update indicator, and the widget displays an orange update link. The widget can check the public feed while the app is closed, at most once every six hours after successful checks, subject to system refresh scheduling. Automatic checks can be disabled; a frozen widget cannot guarantee timely update indicators. Sparkle still handles installation and signature verification.
 
 ## Requirements
 

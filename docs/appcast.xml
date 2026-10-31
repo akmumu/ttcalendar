@@ -3,13 +3,13 @@
     <channel>
         <title>抬头日历</title>
         <item>
-            <title>1.28</title>
-            <pubDate>Sat, 31 Oct 2026 13:42:15 +0800</pubDate>
-            <sparkle:version>28</sparkle:version>
-            <sparkle:shortVersionString>1.28</sparkle:shortVersionString>
+            <title>1.29</title>
+            <pubDate>Sat, 31 Oct 2026 17:41:03 +0800</pubDate>
+            <sparkle:version>29</sparkle:version>
+            <sparkle:shortVersionString>1.29</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <sparkle:releaseNotesLink>https://akmumu.github.io/ttcalendar/ttcalendar-1.28.html</sparkle:releaseNotesLink>
-            <enclosure url="https://github.com/akmumu/ttcalendar/releases/download/1.28/ttcalendar-1.28.dmg" length="3272115" type="application/octet-stream" sparkle:edSignature="0ErVXSZprd6i9BicgqmEB9GwwgVD4Vp+VOWa1PZQqCiSMnOZgRAKQJrrDXML5AABfqCZEK/JM6xWvpKxoJDVDw=="/>
+            <sparkle:releaseNotesLink>https://akmumu.github.io/ttcalendar/ttcalendar-1.29.html</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/akmumu/ttcalendar/releases/download/1.29/ttcalendar-1.29.dmg" length="3455927" type="application/octet-stream" sparkle:edSignature="1Ikfgr/uLuUzcacIfF6fKAqouolu4yEtSSMX5+nOtrTTGFD7KrKYA/hbSIDDZcRuq7adv/3yoB1HKUz+hQJSDw=="/>
         </item>
     </channel>
 </rss>
