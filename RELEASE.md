@@ -19,9 +19,9 @@
 | 系统 / 架构 | macOS 14.0+，Intel + Apple Silicon |
 | 分发方式 | ad-hoc 签名，当前没有 Developer ID 公证 |
 
-本次版本为 **1.32 / build 32**。下面用下一版 **1.33 / build 33** 演示；每次先改这两个数字，已发布的版本号、标签和安装包不要重复使用。
+本次版本为 **1.33 / build 33**。下面用下一版 **1.34 / build 34** 演示；每次先改这两个数字，已发布的版本号、标签和安装包不要重复使用。
 
-本次执行结果见 [1.32 发布验证记录](release-notes/1.32-validation.md)，记录构建、签名、上传完整性、线上更新源及客户端验证结果。
+本次执行结果见 [1.33 发布验证记录](release-notes/1.33-validation.md)，记录构建、签名、上传完整性、线上更新源及客户端验证结果。
 
 ## 0. 发布环境（新电脑需要准备）
 
@@ -60,8 +60,8 @@ git status --short
 git fetch origin
 git log --oneline HEAD..origin/main
 
-export RELEASE_VERSION=1.33
-export RELEASE_BUILD=33
+export RELEASE_VERSION=1.34
+export RELEASE_BUILD=34
 export RELEASE_OUTPUT="$PWD/build/releases/$RELEASE_VERSION"
 export RELEASE_DERIVED="/private/tmp/ttcalendar-release-$RELEASE_VERSION"
 mkdir -p "$RELEASE_OUTPUT"

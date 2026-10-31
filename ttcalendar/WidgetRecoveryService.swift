@@ -17,6 +17,25 @@ nonisolated protocol WidgetProcessAccess {
 }
 
 nonisolated struct SystemWidgetProcesses: WidgetProcessAccess {
+    let targetURL: URL
+    var stagingDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+        .appendingPathComponent("akmumu.ttcalendar/org.sparkle-project.Sparkle/Installation")
+
+    // After Sparkle replaces an app, proc_pidpath may point at its staging
+    // directory, or fail because the old executable was unlinked. The exec
+    // path saved at launch precedes argv[0] in KERN_PROCARGS2.
+    private func launchPath(for pid: Int32) -> String? {
+        var mib: [Int32] = [CTL_KERN, KERN_PROCARGS2, pid]
+        var size = 0
+        guard sysctl(&mib, 3, nil, &size, nil, 0) == 0,
+              size > MemoryLayout<Int32>.size, size <= Int(ARG_MAX) else { return nil }
+        var bytes = [UInt8](repeating: 0, count: size)
+        guard sysctl(&mib, 3, &bytes, &size, nil, 0) == 0 else { return nil }
+        let path = bytes.prefix(size).dropFirst(MemoryLayout<Int32>.size)
+        guard path.first == UInt8(ascii: "/"), let end = path.firstIndex(of: 0) else { return nil }
+        return String(bytes: path[..<end], encoding: .utf8)
+    }
+
     func processes() throws -> [WidgetProcessIdentity] {
         let count = proc_listallpids(nil, 0)
         guard count > 0 else { throw POSIXError(.EPERM) }
@@ -32,12 +51,22 @@ nonisolated struct SystemWidgetProcesses: WidgetProcessAccess {
         var info = proc_bsdinfo()
         let size = Int32(MemoryLayout<proc_bsdinfo>.size)
         guard proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &info, size) == size,
-              info.pbi_status != SZOMB else { return nil }
+              info.pbi_status != SZOMB, info.pbi_uid == getuid() else { return nil }
         // PROC_PIDPATHINFO_MAXSIZE is a C expression macro not imported by Swift.
         var path = [CChar](repeating: 0, count: 4 * Int(MAXPATHLEN))
-        guard proc_pidpath(pid, &path, UInt32(path.count)) > 0 else { return nil }
+        let foundPath = proc_pidpath(pid, &path, UInt32(path.count)) > 0
+        let mapped = foundPath ? URL(fileURLWithPath: String(cString: path)).resolvingSymlinksInPath().path : nil
+        let expected = targetURL.resolvingSymlinksInPath().path
+        if mapped != expected {
+            // A normal executable in another app (e.g. Apple Calendar or
+            // Outlook) is never a candidate, even when its name is identical.
+            if let mapped, !mapped.hasPrefix(stagingDirectory.path + "/") { return nil }
+            let name = withUnsafeBytes(of: info.pbi_name) { String(decoding: $0.prefix(while: { $0 != 0 }), as: UTF8.self) }
+            guard name == targetURL.lastPathComponent, let launch = launchPath(for: pid),
+                  URL(fileURLWithPath: launch).resolvingSymlinksInPath().path == expected else { return nil }
+        }
         return WidgetProcessIdentity(pid: pid,
-                                     executablePath: URL(fileURLWithPath: String(cString: path)).resolvingSymlinksInPath().path,
+                                     executablePath: expected,
                                      userID: info.pbi_uid,
                                      startSeconds: info.pbi_start_tvsec,
                                      startMicroseconds: info.pbi_start_tvusec)
@@ -54,10 +83,11 @@ nonisolated enum WidgetProcessRestarter {
     static func stop(
         executableURL: URL,
         userID: UInt32 = getuid(),
-        processes: WidgetProcessAccess = SystemWidgetProcesses(),
+        processes provided: WidgetProcessAccess? = nil,
         pause: () async throws -> Void = { try await Task.sleep(nanoseconds: 500_000_000) }
     ) async throws -> Int {
         let path = executableURL.resolvingSymlinksInPath().path
+        let processes = provided ?? SystemWidgetProcesses(targetURL: executableURL)
         let matches = try processes.processes().filter {
             $0.userID == userID && $0.executablePath == path && $0.pid != getpid()
         }
@@ -88,7 +118,7 @@ final class WidgetRecoveryService: ObservableObject {
 
     enum Target { case calendarWidget, systemWidgets }
 
-    func restart(_ target: Target = .calendarWidget) {
+    func restart(_ target: Target = .calendarWidget, onSuccess: (() -> Void)? = nil) {
         guard !isRestarting else { return }
         let executable: URL
         switch target {
@@ -106,11 +136,13 @@ final class WidgetRecoveryService: ObservableObject {
                 let count = try await Task.detached {
                     try await WidgetProcessRestarter.stop(executableURL: executable)
                 }.value
+                onSuccess?()
                 AppInstallRefreshCoordinator.reloadWidgetsRepeatedly()
                 message = count == 0
                     ? "未发现运行中的进程，已请求系统加载小组件。若仍卡住，可重启系统小组件服务。"
                     : "已结束原进程并请求系统重新加载。恢复显示可能需要几秒；日期数据已保留。"
             } catch {
+                AppInstallRefreshCoordinator.reloadWidgetsRepeatedly()
                 hasError = true
                 message = "未能完成重启：\(error.localizedDescription)"
             }

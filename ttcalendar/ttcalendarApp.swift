@@ -61,7 +61,14 @@ enum AppInstallRefreshCoordinator {
             defaults.set(currentBuild, forKey: lastOpenedBuildKey)
         }
 
-        reloadWidgetsRepeatedly()
+        let recoveryKey = "widgetRecoveryBuild"
+        if !currentBuild.isEmpty && UserDefaults.standard.string(forKey: recoveryKey) != currentBuild {
+            WidgetRecoveryService.shared.restart {
+                UserDefaults.standard.set(currentBuild, forKey: recoveryKey)
+            }
+        } else {
+            reloadWidgetsRepeatedly()
+        }
     }
 
     static func reloadWidgetsRepeatedly() {
