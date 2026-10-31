@@ -63,7 +63,7 @@ git log --oneline HEAD..origin/main
 export RELEASE_VERSION=1.33
 export RELEASE_BUILD=33
 export RELEASE_OUTPUT="$PWD/build/releases/$RELEASE_VERSION"
-export RELEASE_DERIVED="$PWD/DerivedData/release-$RELEASE_VERSION"
+export RELEASE_DERIVED="/private/tmp/ttcalendar-release-$RELEASE_VERSION"
 mkdir -p "$RELEASE_OUTPUT"
 python3 Scripts/bump_version.py "$RELEASE_VERSION" "$RELEASE_BUILD"
 ```
@@ -257,7 +257,16 @@ LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Versions/Current/F
 "$LSREGISTER" -f '/Applications/抬头日历.app'
 ```
 
-构建时的 `REGISTER_APP_WITH_LAUNCH_SERVICES=NO` 不能替代发布后检查：后续访问构建目录或安装包仍可能产生注册记录。若仍有重复项，用 `lsregister -dump` 按 `akmumu.ttcalendar` 精确定位旧构建、打包目录和已卸载镜像中的路径，逐个取消注册，保留 `/Applications/抬头日历.app`。只清理本项目的重复入口，不重置整个启动台，也不删除用户数据；重新打开启动台搜索验证结果。
+同时核对 Spotlight 实际索引的应用。下面两个查询都应只返回 `/Applications/抬头日历.app`，再打开系统搜索核对显示结果。
+
+```sh
+mdfind 'kMDItemCFBundleIdentifier == "akmumu.ttcalendar"'
+mdfind 'kMDItemFSName == "抬头日历.app"'
+```
+
+逐个核对多余路径的 Bundle ID 和版本。对于确认属于本项目的旧构建，先逐个取消注册，再移入其旁边的 `历史构建.noindex` 文件夹保留。待索引更新后重跑两个查询。单独取消注册后，Spotlight 仍可能再次发现原位置的应用。
+
+升级之后，在桌面小组件点一次「下个月」，看到月份改变后再点「上个月」恢复。若时间线重载报错且应用提示找不到运行中的扩展，检查升级前的旧进程是否仍映射 Sparkle 安装缓存中的可执行文件。核对进程所有者、启动时间及实际映像完整路径后，只处理本应用的旧实例。重新加载后，分别核对桌面月份和系统时间线加载结果。
 
 记录区分“签名/链接校验”“主应用升级成功”“桌面小组件验证”“实际通知送达”，不要把其中一项通过当作全部通过。
 
